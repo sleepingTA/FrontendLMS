@@ -1,0 +1,33 @@
+@import 'tailwindcss';
+@import url('https://fonts.googleapis.com/css2?family=Playwrite+ES+Deco:wght@100..400&family=Playwrite+US+Modern:wght@100..400&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap');
+
+body {
+  font-family: 'Roboto', sans-serif;
+}
+
+@layer base {
+  body {
+    font-family: 'Roboto', sans-serif;
+  }
+}
+
+.button-primary {
+  @apply flex font-bold items-center gap-[8px] text-white px-[16px] py-[8px] rounded-[12px] bg-[#3DCBB1] text-sm hover:text-emerald-500 transform transition-transform duration-200 hover:scale-105;
+}
+
+.button-outline {
+  @apply border border-[#1B1B1B] text-[#1B1B1B] rounded-[12px] px-[16px] py-[8px] font-bold text-sm hover:text-emerald-500 transform transition-transform duration-200 hover:scale-105;
+}
+
+.btn-category{
+  @apply rounded-[12px] border border-[#C4C4C4] text-[#1B1B1B] w-[140px] h-[40px] items-center flex justify-center text-sm opacity-75 hover:text-emerald-500 transform transition-transform duration-200 hover:scale-105;
+}
+
+.btn-category-chosen{
+  @apply rounded-[12px] border border-[#3DCBB1] text-[#3DCBB1] w-[140px] h-[40px] items-center flex justify-center text-sm opacity-75 hover:text-white transform transition-transform duration-200 hover:scale-105;
+}
+
+.course-card {
+  @apply w-[285px] h-[350px] py-[20px] mb-[20px] col-span-3 bg-white rounded-[12px] shadow-lg flex flex-col items-center justify-center gap-[8px] p-[16px] cursor-pointer transform transition-transform duration-200 hover:scale-105;
+}
+
