@@ -1,143 +1,87 @@
-import axios from '../config/axios';
-import { User, AuthResponse, AuthError } from '../types/auth';
+import axiosInstance from '../config/axios';
+import { ApiResponse, LoginResponse, User } from '../types/types';
 
-
-class AuthService {
-
-  async login(email: string, password: string): Promise<AuthResponse> {
-    try {
-      const response = await axios.post<AuthResponse>('/auth/login', { email, password });
-      if (response.data.accessToken) {
-        localStorage.setItem('accessToken', response.data.accessToken);
-        localStorage.setItem('refreshToken', response.data.refreshToken || '');
-        localStorage.setItem('user', JSON.stringify(response.data.user || {}));
-      }
-      return response.data;
-    } catch (error) {
-      throw this.handleError(error);
-    }
+export const register = async (email: string, password: string, full_name: string): Promise<number> => {
+  try {
+    const response = await axiosInstance.post<ApiResponse<{ userId: number }>>('/auth/register', {
+      email,
+      password,
+      full_name,
+    });
+    return response.data.data?.userId || 0;
+  } catch (error) {
+    throw new Error('Registration failed');
   }
+};
 
-
-  async register(email: string, password: string, fullName: string): Promise<AuthResponse> {
-    try {
-      const response = await axios.post<AuthResponse>('/auth/register', {
-        email,
-        password,
-        full_name: fullName,
-        is_active: 1,
-        email_verified: false,
-      });
-      return response.data;
-    } catch (error) {
-      throw this.handleError(error);
-    }
+export const verifyEmail = async (token: string): Promise<void> => {
+  try {
+    await axiosInstance.get(`/auth/verify-email/${token}`);
+  } catch (error) {
+    throw new Error('Email verification failed');
   }
+};
 
-
-  async googleLogin(idToken: string): Promise<AuthResponse> {
-    try {
-      const response = await axios.post<AuthResponse>('/auth/google-login', { idToken });
-      if (response.data.accessToken) {
-        localStorage.setItem('accessToken', response.data.accessToken);
-        localStorage.setItem('refreshToken', response.data.refreshToken || '');
-        localStorage.setItem('user', JSON.stringify(response.data.user || {}));
-      }
-      return response.data;
-    } catch (error) {
-      throw this.handleError(error);
+export const login = async (email: string, password: string): Promise<LoginResponse> => {
+  try {
+    const response = await axiosInstance.post<ApiResponse<LoginResponse>>('/auth/login', {
+      email,
+      password,
+    });
+    if (response.data.data) {
+      localStorage.setItem('accessToken', response.data.data.accessToken);
+      localStorage.setItem('refreshToken', response.data.data.refreshToken);
+      localStorage.setItem('user', JSON.stringify(response.data.data.user));
+      return response.data.data;
     }
+    throw new Error('Login failed');
+  } catch (error) {
+    throw new Error('Login failed');
   }
+};
 
-
-  async verifyEmail(token: string): Promise<AuthResponse> {
-    try {
-      const response = await axios.get<AuthResponse>(`/auth/verify-email/${token}`);
-      return response.data;
-    } catch (error) {
-      throw this.handleError(error);
-    }
-  }
-
- 
-  async forgotPassword(email: string): Promise<AuthResponse> {
-    try {
-      const response = await axios.post<AuthResponse>('/auth/forgot-password', { email });
-      return response.data;
-    } catch (error) {
-      throw this.handleError(error);
-    }
-  }
-
-
-  async resetPassword(token: string, newPassword: string): Promise<AuthResponse> {
-    try {
-      const response = await axios.post<AuthResponse>(`/auth/reset-password/${token}`, { newPassword });
-      return response.data;
-    } catch (error) {
-      throw this.handleError(error);
-    }
-  }
-
-
-  async refreshToken(): Promise<AuthResponse> {
-    try {
-      const refreshToken = localStorage.getItem('refreshToken');
-      if (!refreshToken) {
-        throw new Error('No refresh token found');
-      }
-
-      const response = await axios.post<AuthResponse>('/auth/refresh-token', { refreshToken });
-      if (response.data.accessToken) {
-        localStorage.setItem('accessToken', response.data.accessToken);
-        localStorage.setItem('refreshToken', response.data.refreshToken || refreshToken);
-      }
-      return response.data;
-    } catch (error) {
-      this.logout();
-      throw this.handleError(error);
-    }
-  }
-
-
-  async logout(): Promise<void> {
-    try {
-      await axios.post('/auth/logout');
-    } catch (error) {
-      console.warn('Logout request failed:', error);
-    } finally {
-      localStorage.removeItem('accessToken');
-      localStorage.removeItem('refreshToken');
-      localStorage.removeItem('user');
-    }
-  }
-
-
-  private handleError(error: any): AuthError {
-    if (error.response) {
-      return {
-        message: error.response.data.error || 'An error occurred',
-        status: error.response.status,
-      };
-    }
-    return {
-      message: error.message || 'An error occurred',
-      status: 0,
-    };
-  }
-
-
-  isAuthenticated(): boolean {
-    const accessToken = localStorage.getItem('accessToken');
+export const refreshToken = async (): Promise<void> => {
+  try {
     const refreshToken = localStorage.getItem('refreshToken');
-    return !!(accessToken && refreshToken);
+    if (!refreshToken) throw new Error('No refresh token');
+    const response = await axiosInstance.post<ApiResponse<{ accessToken: string }>>('/auth/refresh-token', {
+      refreshToken,
+    });
+    if (response.data.data) {
+      localStorage.setItem('accessToken', response.data.data.accessToken);
+    }
+  } catch (error) {
+    throw new Error('Token refresh failed');
   }
+};
 
-
-  getUser(): User | null {
-    const userStr = localStorage.getItem('user');
-    return userStr ? JSON.parse(userStr) : null;
+export const forgotPassword = async (email: string): Promise<void> => {
+  try {
+    await axiosInstance.post('/auth/forgot-password', { email });
+  } catch (error) {
+    throw new Error('Forgot password request failed');
   }
-}
+};
 
-export default new AuthService();
+export const resetPassword = async (token: string, newPassword: string): Promise<void> => {
+  try {
+    await axiosInstance.post(`/auth/reset-password/${token}`, { newPassword });
+  } catch (error) {
+    throw new Error('Password reset failed');
+  }
+};
+
+export const logout = async (): Promise<void> => {
+  try {
+    await axiosInstance.post('/ arrivare auth/logout');
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
+    localStorage.removeItem('user');
+  } catch (error) {
+    throw new Error('Logout failed');
+  }
+};
+
+export const isAuthenticated = (): boolean => {
+  return !!localStorage.getItem('accessToken');
+};
