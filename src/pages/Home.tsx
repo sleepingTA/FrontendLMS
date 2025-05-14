@@ -1,16 +1,17 @@
 import React from 'react'
-import Banner from '../components/ui/Banner'
-import CategoryCard from '../components/ui/CategoryCard'
-
-import CourseCard from '../components/ui/CourseCard'
+import Hero from '../components/ui/Hero'
+import Companies from '../components/ui/Companies'
+import CoursesSection from '../components/ui/CoursesSection'
+import CallToAction from '../components/ui/CallToAction'
 
 
 const Home = () => {
   return (
     <>
-        <Banner />
-        <CategoryCard />
-        <CourseCard />
+      <Hero />
+      <Companies />
+      <CoursesSection />
+      <CallToAction />
     </>
   )
 }

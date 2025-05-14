@@ -1,9 +1,5 @@
-<<<<<<< Updated upstream
-import React from 'react'
-=======
 import React, { useEffect, useRef, useState } from 'react'
 
->>>>>>> Stashed changes
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -91,49 +87,22 @@ const Header = () => {
               onClick={toggleDropdown}
             >
               {isAuthenticated ? (
-          <img
-            src={user.avatar}
-            alt="User Avatar"
-            className="w-8 h-8 rounded-full object-cover"
-          />
-        ) : (
-          <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="w-5 h-5 cursor-pointer fill-black"
-                viewBox="0 0 512 512"
-              >
-                <path d="M337.711 241.3a16 16 0 0 0-11.461 3.988c-18.739 16.561-43.688 25.682-70.25 25.682s-51.511-9.121-70.25-25.683a16.007 16.007 0 0 0-11.461-3.988c-78.926 4.274-140.752 63.672-140.752 135.224v107.152C33.537 499.293 46.9 512 63.332 512h385.336c16.429 0 29.8-12.707 29.8-28.325V376.523c-.005-71.552-61.831-130.95-140.757-135.223zM446.463 480H65.537V376.523c0-52.739 45.359-96.888 104.351-102.8C193.75 292.63 224.055 302.97 256 302.97s62.25-10.34 86.112-29.245c58.992 5.91 104.351 50.059 104.351 102.8zM256 234.375a117.188 117.188 0 1 0-117.188-117.187A117.32 117.32 0 0 0 256 234.375zM256 32a85.188 85.188 0 1 1-85.188 85.188A85.284 85.284 0 0 1 256 32z" />
-              </svg>
-        )}
+                <img
+                  src={user.avatar}
+                  alt="User Avatar"
+                  className="w-8 h-8 rounded-full object-cover"
+                />
+              ) : (
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="w-5 h-5 cursor-pointer fill-black"
+                  viewBox="0 0 512 512"
+                >
+                  <path d="M337.711 241.3a16 16 0 0 0-11.461 3.988c-18.739 16.561-43.688 25.682-70.25 25.682s-51.511-9.121-70.25-25.683a16.007 16.007 0 0 0-11.461-3.988c-78.926 4.274-140.752 63.672-140.752 135.224v107.152C33.537 499.293 46.9 512 63.332 512h385.336c16.429 0 29.8-12.707 29.8-28.325V376.523c-.005-71.552-61.831-130.95-140.757-135.223zM446.463 480H65.537V376.523c0-52.739 45.359-96.888 104.351-102.8C193.75 292.63 224.055 302.97 256 302.97s62.25-10.34 86.112-29.245c58.992 5.91 104.351 50.059 104.351 102.8zM256 234.375a117.188 117.188 0 1 0-117.188-117.187A117.32 117.32 0 0 0 256 234.375zM256 32a85.188 85.188 0 1 1-85.188 85.188A85.284 85.284 0 0 1 256 32z" />
+                </svg>
+              )}
             </button>
 
-<<<<<<< Updated upstream
-            <div className="flex items-center sm:space-x-8 space-x-6">
-              <div className="flex flex-col items-center justify-center gap-0.5 cursor-pointer">
-                <div className="relative">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="cursor-pointer fill-[#333] inline w-5 h-5"
-                    viewBox="0 0 64 64">
-                    <path
-                      d="M45.5 4A18.53 18.53 0 0 0 32 9.86 18.5 18.5 0 0 0 0 22.5C0 40.92 29.71 59 31 59.71a2 2 0 0 0 2.06 0C34.29 59 64 40.92 64 22.5A18.52 18.52 0 0 0 45.5 4ZM32 55.64C26.83 52.34 4 36.92 4 22.5a14.5 14.5 0 0 1 26.36-8.33 2 2 0 0 0 3.27 0A14.5 14.5 0 0 1 60 22.5c0 14.41-22.83 29.83-28 33.14Z"
-                      data-original="#000000" />
-                  </svg>
-                  <span className="absolute left-auto -ml-1 top-0 rounded-full bg-red-500 px-1 py-0 text-xs text-white">0</span>
-                </div>
-                <span className="text-[13px] font-semibold text-slate-900">Wishlist</span>
-              </div>
-              <div className="flex flex-col items-center justify-center gap-0.5 cursor-pointer">
-                <div className="relative">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" className="cursor-pointer fill-[#333] inline"
-                    viewBox="0 0 512 512">
-                    <path
-                      d="M164.96 300.004h.024c.02 0 .04-.004.059-.004H437a15.003 15.003 0 0 0 14.422-10.879l60-210a15.003 15.003 0 0 0-2.445-13.152A15.006 15.006 0 0 0 497 60H130.367l-10.722-48.254A15.003 15.003 0 0 0 105 0H15C6.715 0 0 6.715 0 15s6.715 15 15 15h77.969c1.898 8.55 51.312 230.918 54.156 243.71C131.184 280.64 120 296.536 120 315c0 24.812 20.188 45 45 45h272c8.285 0 15-6.715 15-15s-6.715-15-15-15H165c-8.27 0-15-6.73-15-15 0-8.258 6.707-14.977 14.96-14.996zM477.114 90l-51.43 180H177.032l-40-180zM150 405c0 24.813 20.188 45 45 45s45-20.188 45-45-20.188-45-45-45-45 20.188-45 45zm45-15c8.27 0 15 6.73 15 15s-6.73 15-15 15-15-6.73-15-15 6.73-15 15-15zm167 15c0 24.813 20.188 45 45 45s45-20.188 45-45-20.188-45-45-45-45 20.188-45 45zm45-15c8.27 0 15 6.73 15 15s-6.73 15-15 15-15-6.73-15-15 6.73-15 15-15zm0 0"
-                      data-original="#000000"></path>
-                  </svg>
-                  <span className="absolute left-auto -ml-1 top-0 rounded-full bg-red-500 px-1 py-0 text-xs text-white">0</span>
-                </div>
-                <span className="text-[13px] font-semibold text-slate-900">Cart</span>
-              </div>
-=======
             {isOpen && (
               <ul className="absolute top-full mt-2 bg-white shadow-lg z-50 min-w-[160px] rounded border">
                 {isAuthenticated ? (
@@ -158,7 +127,6 @@ const Header = () => {
                 )}
               </ul>
             )}
->>>>>>> Stashed changes
 
           </div>
         </div>

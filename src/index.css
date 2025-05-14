@@ -11,8 +11,6 @@ body {
   }
 }
 
-<<<<<<< Updated upstream
-=======
 h1 {
   font-size: 36px; font-weight: 800; color: #252525; margin: 32px 0;
 }
@@ -40,7 +38,6 @@ h1 {
   margin-left: 30px; list-style-type: decimal;
 }
 
->>>>>>> Stashed changes
 .button-primary {
   @apply flex font-bold items-center gap-[8px] text-white px-[16px] py-[8px] rounded-[12px] bg-[#3DCBB1] text-sm hover:text-emerald-500 transform transition-transform duration-200 hover:scale-105;
 }

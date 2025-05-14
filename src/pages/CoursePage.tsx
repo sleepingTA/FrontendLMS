@@ -1,22 +1,5 @@
 import React from 'react'
-import CourseCard from '../components/ui/CourseCard'
-import FilterForm from '../components/form/FilterForm';
-import ListCourse from '../components/ui/CourseCard';
 
-<<<<<<< Updated upstream
-const CoursePage = () => {
-  return (
-    <>
-      <div className="pt-20">
-        <div className="main flex justify-center items-center px-[120px] py-[20px]">
-          <h1 className="text-2xl font-bold">Course Page</h1>
-        </div>
-        <FilterForm />
-        <ListCourse />
-      </div>
-    </>
-  )
-=======
 export default function CoursePage() {
     return (
         <div className="py-4 mx-auto lg:max-w-6xl md:max-w-4xl max-w-xl">
@@ -37,5 +20,4 @@ export default function CoursePage() {
             </div>
         </div>
     )
->>>>>>> Stashed changes
 }
