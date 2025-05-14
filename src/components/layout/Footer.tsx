@@ -1,6 +1,10 @@
 import React from 'react'
+import { useLocation } from 'react-router-dom';
 
 const Footer = () => {
+  const location = useLocation();
+  if (location.pathname.includes("/player")) return null;
+  
   return (
     <footer className="bg-gray-900 text-white py-12 px-4 tracking-wide">
       <div className="text-center">

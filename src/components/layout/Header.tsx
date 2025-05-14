@@ -1,9 +1,13 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { FaShoppingCart } from "react-icons/fa";
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 
 
 const Header = () => {
+  const location = useLocation();
+  if (location.pathname.includes("/player")) return null;
+
+
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(true);
   const [user, setUser] = useState({ avatar: 'https://i.pravatar.cc/150?img=32' });

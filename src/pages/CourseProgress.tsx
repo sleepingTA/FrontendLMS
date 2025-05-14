@@ -1,57 +1,213 @@
-import React from 'react'
+import { useState, useEffect } from "react";
+import { Button } from "../components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "../components/ui/dialog";
+import { Label } from "../components/ui/label";
+import { ScrollArea } from "../components/ui/scroll-area";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
+import { Check, ChevronLeft, ChevronRight, Play } from "lucide-react";
+import Confetti from "react-confetti";
+import { useNavigate } from "react-router-dom";
+import VideoPlayer from "../components/ui/video-player";
 
-const CourseProgress = () => {
-  return (
-    <div className="max-w-6xl mx-auto px-4 py-10">
-      <div className="flex flex-col lg:flex-row items-start gap-10">
-        {/* VIDEO HỌC */}
-        <div className="w-full lg:w-2/3">
-          <video
-            className="w-full rounded-lg shadow-md"
-            controls           
-          >
-            <source src="/videos/lesson1.mp4" type="video/mp4" />
-            Trình duyệt của bạn không hỗ trợ video.
-          </video>
-          <h2 className="text-xl font-semibold mt-4 text-slate-800">1. Giới thiệu khóa học</h2>
-          <p className="text-sm text-slate-500 mt-2">
-            Đây là video giới thiệu tổng quan về nội dung bạn sắp học trong khóa học này.
-          </p>
-        </div>
-
-        {/* TIẾN TRÌNH HỌC */}
-        <div className="w-full lg:w-1/3 space-y-6">
-          <h3 className="text-lg font-semibold text-slate-800">Tiến trình học tập</h3>
-
-          <div>
-            <div className="bg-gray-200 h-4 rounded-full">
-              <div className="bg-blue-600 h-4 rounded-full" style={{ width: '40%' }}></div>
-            </div>
-            <p className="text-sm text-slate-500 mt-1">2 / 5 bài học đã hoàn thành</p>
-          </div>
-
-          <ul className="space-y-3">
-            {[
-              { title: '1. Giới thiệu khóa học', done: true },
-              { title: '2. Thiết lập môi trường', done: true },
-              { title: '3. Cấu trúc dự án', done: false },
-              { title: '4. Xây dựng chức năng', done: false },
-              { title: '5. Tổng kết', done: false }
-            ].map((lesson, idx) => (
-              <li key={idx} className={`flex justify-between items-center p-3 rounded-md border ${lesson.done ? 'bg-green-50' : 'bg-white'}`}>
-                <span className={`${lesson.done ? 'line-through text-green-700' : 'text-slate-700'}`}>
-                  {lesson.done ? '✔️ ' : ''}{lesson.title}
-                </span>
-                {!lesson.done && (
-                  <button className="text-sm text-blue-600 hover:bg-gray-100 cursor-pointer">Tiếp tục</button>
-                )}
-              </li>
-            ))}
-          </ul>
-        </div>
-      </div>
-    </div>
-  )
+interface Lecture {
+  _id: string;
+  title: string;
+  videoUrl: string;
+  progressValue?: number;
 }
 
-export default CourseProgress
+interface CourseDetails {
+  _id: string;
+  title: string;
+  description: string;
+  curriculum: Lecture[];
+}
+
+const mockCourse: CourseDetails = {
+  _id: "course123",
+  title: "React for Beginners",
+  description: "Learn the fundamentals of React.js in this beginner course.",
+  curriculum: [
+    {
+      _id: "lec1",
+      title: "Introduction to React",
+      videoUrl: "https://www.w3schools.com/html/mov_bbb.mp4",
+    },
+    {
+      _id: "lec2",
+      title: "JSX & Components",
+      videoUrl: "https://www.w3schools.com/html/movie.mp4",
+    },
+    {
+      _id: "lec3",
+      title: "State and Props",
+      videoUrl: "https://www.w3schools.com/html/mov_bbb.mp4",
+    },
+  ],
+};
+
+function StudentViewCourseProgressPage() {
+  const navigate = useNavigate();
+  const [currentLecture, setCurrentLecture] = useState<Lecture | null>(
+    mockCourse.curriculum[0]
+  );
+  const [showConfetti, setShowConfetti] = useState(false);
+  const [showCourseCompleteDialog, setShowCourseCompleteDialog] =
+    useState(false);
+  const [isSideBarOpen, setIsSideBarOpen] = useState(true);
+  const [completedLectures, setCompletedLectures] = useState<string[]>([]);
+
+  const handleLectureClick = (lecture: Lecture) => {
+    setCurrentLecture(lecture);
+    if (!completedLectures.includes(lecture._id)) {
+      setCompletedLectures([...completedLectures, lecture._id]);
+    }
+  };
+
+  const handleRewatchCourse = () => {
+    setCompletedLectures([]);
+    setShowCourseCompleteDialog(false);
+    setShowConfetti(false);
+    setCurrentLecture(mockCourse.curriculum[0]);
+  };
+
+  useEffect(() => {
+    if (completedLectures.length === mockCourse.curriculum.length) {
+      setShowCourseCompleteDialog(true);
+      setShowConfetti(true);
+    }
+  }, [completedLectures]);
+
+  useEffect(() => {
+    if (showConfetti) {
+      const timer = setTimeout(() => setShowConfetti(false), 15000);
+      return () => clearTimeout(timer);
+    }
+  }, [showConfetti]);
+
+  return (
+    <div className="flex flex-col h-screen bg-[#1c1d1f] text-white">
+      {showConfetti && <Confetti />}
+      <div className="flex items-center justify-between p-4 bg-[#1c1d1f] border-b border-gray-700">
+        <div className="flex items-center space-x-4">
+          <Button
+            onClick={() => navigate("/mycourses")}
+            className="text-black bg-white"
+            variant="ghost"
+            size="sm"
+          >
+            <ChevronLeft className="h-4 w-4 mr-2" />
+            Back to My Courses Page
+          </Button>
+          <div className="text-lg font-bold hidden md:block">
+            {mockCourse.title}
+          </div>
+        </div>
+        <Button onClick={() => setIsSideBarOpen(!isSideBarOpen)}>
+          {isSideBarOpen ? (
+            <ChevronRight className="h-5 w-5" />
+          ) : (
+            <ChevronLeft className="h-5 w-5" />
+          )}
+        </Button>
+      </div>
+
+      <div className="flex flex-1 overflow-hidden">
+        <div
+          className={`flex-1 ${isSideBarOpen ? "mr-[400px]" : ""
+            } transition-all duration-300`}
+        >
+          <VideoPlayer
+            width="100%"
+            height="500px"
+            url={currentLecture?.videoUrl ?? ""}
+            onProgressUpdate={setCurrentLecture}
+            progressData={currentLecture ?? mockCourse.curriculum[0]}
+          />
+          <div className="p-6 bg-[#1c1d1f] text-white">
+            <div className="text-2xl font-bold">
+              {currentLecture?.title}
+            </div>
+          </div>
+        </div>
+
+        <div
+          className={`fixed top-[64px] right-0 bottom-0 w-[400px] bg-[#1c1d1f] border-l border-gray-700 transition-all duration-300 ${isSideBarOpen ? "translate-x-0" : "translate-x-full"
+            }`}
+        >
+          <Tabs defaultValue="content" className="h-full flex flex-col">
+            <TabsList className="grid bg-white w-full grid-cols-2 p-0 h-14">
+              <TabsTrigger
+                value="content"
+                className=" text-black rounded-none h-full hover:bg-gray-100 hover:rounded cursor-pointer"
+              >
+                Course Content
+              </TabsTrigger>
+              <TabsTrigger
+                value="overview"
+                className=" text-black rounded-none h-full hover:bg-gray-100 hover:rounded cursor-pointer"
+              >
+                Overview
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="content">
+              <ScrollArea className="h-full">
+                <div className="p-4 space-y-4">
+                  {mockCourse.curriculum.map((lecture) => (
+                    <div
+                      key={lecture._id}
+                      onClick={() => handleLectureClick(lecture)}
+                      className="flex items-center space-x-2 text-sm text-white font-bold cursor-pointer"
+                    >
+                      {completedLectures.includes(lecture._id) ? (
+                        <Check className="h-4 w-4 text-green-500" />
+                      ) : (
+                        <Play className="h-4 w-4" />
+                      )}
+                      <span>{lecture.title}</span>
+                    </div>
+                  ))}
+                </div>
+              </ScrollArea>
+            </TabsContent>
+
+            <TabsContent value="overview" className="flex-1 overflow-hidden">
+              <ScrollArea className="h-full">
+                <div className="p-4">
+                  <h2 className="text-xl font-bold mb-4">About this course</h2>
+                  <p className="text-gray-400">{mockCourse.description}</p>
+                </div>
+              </ScrollArea>
+            </TabsContent>
+          </Tabs>
+        </div>
+      </div>
+
+      <Dialog open={showCourseCompleteDialog}>
+        <DialogContent showOverlay={false} className="sm:w-[425px] bg-white">
+          <DialogHeader>
+            <DialogTitle>Congratulations!</DialogTitle>
+            <DialogDescription className="flex flex-col gap-3">
+              <Label>You have completed the course</Label>
+              <div className="flex flex-row gap-3">
+                <Button onClick={() => navigate("/mycourses")}>
+                  My Courses Page
+                </Button>
+                <Button onClick={handleRewatchCourse}>Rewatch Course</Button>
+              </div>
+            </DialogDescription>
+          </DialogHeader>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
+
+export default StudentViewCourseProgressPage;
