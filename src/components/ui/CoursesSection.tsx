@@ -9,7 +9,7 @@ const CoursesSection = () => {
       <div className='grid grid-cols-auto px-4 md:px-0 md:my-16 my-10 gap-4'>
         
       </div>
-      <Link to="/course-list" onClick={() => scrollTo(0,0)} className="text-gray-500 border border-gray-500/30 px-10 py-3 rounded">Show all courses</Link>
+      <Link to="/courses" onClick={() => scrollTo(0,0)} className="text-gray-500 border border-gray-500/30 px-10 py-3 rounded">Show all courses</Link>
     </div>
   )
 }
