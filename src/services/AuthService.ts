@@ -1,6 +1,6 @@
 import axiosInstance from '../config/axios';
 import { ApiResponse, LoginResponse, User } from '../types/types';
-import { auth, googleProvider, signInWithPopup } from '../config/firebase'; // Import từ file Firebase config
+import { auth, googleProvider, signInWithPopup } from '../config/firebase'; 
 
 export const register = async (email: string, password: string, full_name: string): Promise<number> => {
   try {
@@ -43,14 +43,14 @@ export const login = async (email: string, password: string): Promise<LoginRespo
 
 export const googleLogin = async (): Promise<LoginResponse> => {
   try {
-    // Thực hiện đăng nhập Google qua Firebase
     const result = await signInWithPopup(auth, googleProvider);
     const idToken = await result.user.getIdToken();
+    console.log('Firebase idToken:', idToken); 
 
-    // Gửi idToken tới server để xác thực
     const response = await axiosInstance.post<ApiResponse<LoginResponse>>('/auth/google-login', {
       idToken,
     });
+    console.log('Response from /auth/google-login:', response.data); 
 
     if (response.data.data) {
       localStorage.setItem('accessToken', response.data.data.accessToken);
@@ -58,9 +58,14 @@ export const googleLogin = async (): Promise<LoginResponse> => {
       localStorage.setItem('user', JSON.stringify(response.data.data.user));
       return response.data.data;
     }
-    throw new Error('Google login failed');
+    throw new Error('Đăng nhập Google thất bại: Không nhận được dữ liệu từ server');
   } catch (error) {
-    throw new Error('Google login failed: ' + (error as Error).message);
+    console.error('Lỗi đăng nhập Google:', error);
+    if (typeof error === 'object' && error !== null && 'response' in error) {
+     
+      console.error('Server response:', (error as any).response.data);
+    }
+    throw new Error(`Đăng nhập Google thất bại: ${(error as Error).message}`);
   }
 };
 
@@ -97,11 +102,11 @@ export const resetPassword = async (token: string, newPassword: string): Promise
 
 export const logout = async (): Promise<void> => {
   try {
-    await axiosInstance.post('/auth/logout'); // Sửa lỗi typo từ '/ arrivare auth/logout' thành '/auth/logout'
+    await axiosInstance.post('/auth/logout'); 
     localStorage.removeItem('accessToken');
     localStorage.removeItem('refreshToken');
     localStorage.removeItem('user');
-    // Đăng xuất khỏi Firebase
+   
     await auth.signOut();
   } catch (error) {
     throw new Error('Logout failed');
@@ -112,7 +117,7 @@ export const isAuthenticated = (): boolean => {
   return !!localStorage.getItem('accessToken');
 };
 
-// Thêm hàm gửi lại email xác thực
+
 export const resendVerificationEmail = async (email: string): Promise<void> => {
   try {
     await axiosInstance.post('/auth/resend-verification', { email });

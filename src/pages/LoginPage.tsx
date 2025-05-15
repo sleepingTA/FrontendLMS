@@ -1,72 +1,185 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { login, googleLogin, isAuthenticated } from '../services/AuthService';
+import { LoginResponse } from '../types/types';
 
-const LoginPage = () => {
+const LoginPage: React.FC = () => {
+  const [email, setEmail] = useState<string>('');
+  const [password, setPassword] = useState<string>('');
+  const [error, setError] = useState<string>('');
+  const [loading, setLoading] = useState<boolean>(false);
+  const navigate = useNavigate();
+
+  // Kiểm tra nếu đã đăng nhập thì điều hướng tới trang chủ
+  useEffect(() => {
+    if (isAuthenticated()) {
+      navigate('/');
+    }
+  }, [navigate]);
+
+  // Xử lý đăng nhập bằng email/mật khẩu
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+
+    try {
+      const response: LoginResponse = await login(email, password);
+      console.log('Đăng nhập thành công:', response);
+      navigate('/');
+    } catch (err) {
+      setError(
+        err && typeof err === 'object' && 'message' in err
+          ? String((err as { message?: string }).message)
+          : 'Đăng nhập thất bại. Vui lòng kiểm tra email hoặc mật khẩu.'
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Xử lý đăng nhập bằng Google
+  const handleGoogleLogin = async () => {
+    setError('');
+    setLoading(true);
+
+    try {
+      const response: LoginResponse = await googleLogin();
+      console.log('Đăng nhập Google thành công:', response);
+      navigate('/');
+    } catch (err) {
+      setError(
+        err && typeof err === 'object' && 'message' in err
+          ? String((err as { message?: string }).message)
+          : 'Đăng nhập Google thất bại. Vui lòng thử lại.'
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-        <div className="min-h-screen flex fle-col items-center justify-center py-6 px-4">
-            <div className="grid md:grid-cols-2 items-center gap-10 max-w-6xl max-md:max-w-md w-full">
-                <div>
-                <h2 className="lg:text-5xl text-5xl font-bold lg:leading-[57px] text-slate-900">
-                    Seamless Login for Exclusive Access
-                </h2>
-                <p className="text-sm mt-6 text-slate-500 leading-relaxed">Immerse yourself in a hassle-free login journey with our intuitively designed login form. Effortlessly access your account.</p>
-                <p className="text-sm mt-12 text-slate-500">Don't have an account <a href="javascript:void(0);" className="text-blue-600 font-medium hover:underline ml-1">Register here</a></p>
-                </div>
-
-                <form className="max-w-md md:ml-auto w-full">
-                <h3 className="text-slate-900 lg:text-3xl text-2xl font-bold mb-8">
-                    Sign in
-                </h3>
-
-                <div className="space-y-6">
-                    <div>
-                    <label className='text-sm text-slate-800 font-medium mb-2 block'>Email</label>
-                    <input name="email" type="email" required className="bg-slate-100 w-full text-sm text-slate-800 px-4 py-3 rounded-md outline-0 border border-gray-200 focus:border-blue-600 focus:bg-transparent" placeholder="Enter Email" />
-                    </div>
-                    <div>
-                    <label className='text-sm text-slate-800 font-medium mb-2 block'>Password</label>
-                    <input name="password" type="password" required className="bg-slate-100 w-full text-sm text-slate-800 px-4 py-3 rounded-md outline-0 border border-gray-200 focus:border-blue-600 focus:bg-transparent" placeholder="Enter Password" />
-                    </div>
-                    <div className="flex flex-wrap items-center justify-between gap-4">
-                    <div className="flex items-center">
-                        
-                    </div>
-                    <div className="text-sm">
-                        <a href="jajvascript:void(0);" className="text-blue-600 hover:text-blue-500 font-medium">
-                        Forgot your password?
-                        </a>
-                    </div>
-                    </div>
-                </div>
-
-                <div className="!mt-12">
-                    <button type="button" className="w-full shadow-xl py-2.5 px-4 text-sm font-semibold rounded text-white bg-blue-600 hover:bg-blue-700 focus:outline-none cursor-pointer">
-                    Log in
-                    </button>
-                </div>
-
-                <div className="my-4 flex items-center gap-4">
-                    <hr className="w-full border-slate-300" />
-                    <p className="text-sm text-slate-800 text-center">or</p>
-                    <hr className="w-full border-slate-300" />
-                </div>
-
-                <div className="space-x-6 flex justify-center">
-                    <button type="button"
-                    className="border-0 outline-0 cursor-pointer">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" viewBox="0 0 512 512">
-                        <path fill="#fbbd00" d="M120 256c0-25.367 6.989-49.13 19.131-69.477v-86.308H52.823C18.568 144.703 0 198.922 0 256s18.568 111.297 52.823 155.785h86.308v-86.308C126.989 305.13 120 281.367 120 256z" data-original="#fbbd00" />
-                        <path fill="#0f9d58" d="m256 392-60 60 60 60c57.079 0 111.297-18.568 155.785-52.823v-86.216h-86.216C305.044 385.147 281.181 392 256 392z" data-original="#0f9d58" />
-                        <path fill="#31aa52" d="m139.131 325.477-86.308 86.308a260.085 260.085 0 0 0 22.158 25.235C123.333 485.371 187.62 512 256 512V392c-49.624 0-93.117-26.72-116.869-66.523z" data-original="#31aa52" />
-                        <path fill="#3c79e6" d="M512 256a258.24 258.24 0 0 0-4.192-46.377l-2.251-12.299H256v120h121.452a135.385 135.385 0 0 1-51.884 55.638l86.216 86.216a260.085 260.085 0 0 0 25.235-22.158C485.371 388.667 512 324.38 512 256z" data-original="#3c79e6" />
-                        <path fill="#cf2d48" d="m352.167 159.833 10.606 10.606 84.853-84.852-10.606-10.606C388.668 26.629 324.381 0 256 0l-60 60 60 60c36.326 0 70.479 14.146 96.167 39.833z" data-original="#cf2d48" />
-                        <path fill="#eb4132" d="M256 120V0C187.62 0 123.333 26.629 74.98 74.98a259.849 259.849 0 0 0-22.158 25.235l86.308 86.308C162.883 146.72 206.376 120 256 120z" data-original="#eb4132" />
+    <div className="min-h-screen bg-gray-100 text-gray-900 flex justify-center">
+      <div className="max-w-screen-xl m-0 sm:m-10 bg-white shadow sm:rounded-lg flex justify-center flex-1">
+        <div className="lg:w-1/2 xl:w-5/12 p-6 sm:p-12">
+          <div>
+            <Link to="/">
+              <span className="text-2xl font-bold text-blue-500 block text-center">Skill Aura</span>
+            </Link>
+          </div>
+          <div className="mt-12 flex flex-col items-center">
+            <h1 className="text-2xl xl:text-3xl font-extrabold">Sign in</h1>
+            <div className="w-full flex-1 mt-8">
+              <div className="flex flex-col items-center">
+                <button
+                  onClick={handleGoogleLogin}
+                  disabled={loading}
+                  className="w-full max-w-xs font-bold shadow-sm rounded-lg py-3 bg-indigo-100 text-gray-800 flex items-center justify-center transition-all duration-300 ease-in-out focus:outline-none hover:shadow focus:shadow-sm focus:shadow-outline disabled:opacity-50"
+                >
+                  <div className="bg-white p-2 rounded-full">
+                    <svg className="w-4" viewBox="0 0 533.5 544.3">
+                      <path
+                        d="M533.5 278.4c0-18.5-1.5-37.1-4.7-55.3H272.1v104.8h147c-6.1 33.8-25.7 63.7-54.4 82.7v68h87.7c51.5-47.4 81.1-117.4 81.1-200.2z"
+                        fill="#4285f4"
+                      />
+                      <path
+                        d="M272.1 544.3c73.4 0 135.3-24.1 180.4-65.7l-87.7-68c-24.4 16.6-55.9 26-92.6 26-71 0-131.2-47.9-152.8-112.3H28.9v70.1c46.2 91.9 140.3 149.9 243.2 149.9z"
+                        fill="#34a853"
+                      />
+                      <path
+                        d="M119.3 324.3c-11.4-33.8-11.4-70.4 0-104.2V150H28.9c-38.6 76.9-38.6 167.5 0 244.4l90.4-70.1z"
+                        fill="#fbbc04"
+                      />
+                      <path
+                        d="M272.1 107.7c38.8-.6 76.3 14 104.4 40.8l77.7-77.7C405 24.6 339.7-.8 272.1 0 169.2 0 75.1 58 28.9 150l90.4 70.1c21.5-64.5 81.8-112.4 152.8-112.4z"
+                        fill="#ea4335"
+                      />
                     </svg>
-                    </button> 
-                </div>
-                </form>
-            </div>
-    </div>
-  )
-}
+                  </div>
+                  <span className="ml-4">{loading ? 'Đang xử lý...' : 'Sign in with Google'}</span>
+                </button>
+              </div>
 
-export default LoginPage
+              <div className="my-12 border-b text-center">
+                <div className="leading-none px-2 inline-block text-sm text-gray-600 tracking-wide font-medium bg-white transform translate-y-1/2">
+                  Or sign in with e-mail
+                </div>
+              </div>
+
+              <form className="mx-auto max-w-xs" onSubmit={handleLogin}>
+                {error && (
+                  <div className="text-red-600 text-sm mb-4 bg-red-100 p-3 rounded-md text-center">
+                    {error}
+                  </div>
+                )}
+
+                <input
+                  className="w-full px-8 py-4 rounded-lg font-medium bg-gray-100 border border-gray-200 placeholder-gray-500 text-sm focus:outline-none focus:border-gray-400 focus:bg-white"
+                  type="email"
+                  placeholder="Email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+                <input
+                  className="w-full px-8 py-4 rounded-lg font-medium bg-gray-100 border border-gray-200 placeholder-gray-500 text-sm focus:outline-none focus:border-gray-400 focus:bg-white mt-5"
+                  type="password"
+                  placeholder="Password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+
+                <div className="flex justify-between items-center mt-4">
+                  <Link
+                    to="/forgot-password"
+                    className="text-sm text-blue-600 hover:underline"
+                  >
+                    Forgot your password?
+                  </Link>
+                  <Link
+                    to="/register"
+                    className="text-sm text-blue-600 hover:underline"
+                  >
+                    Register here
+                  </Link>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="mt-5 tracking-wide font-semibold bg-indigo-500 text-gray-100 w-full py-4 rounded-lg hover:bg-indigo-700 transition-all duration-300 ease-in-out flex items-center justify-center focus:shadow-outline focus:outline-none disabled:opacity-50"
+                >
+                  <svg
+                    className="w-6 h-6 -ml-2"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
+                    <circle cx="8.5" cy="7" r="4" />
+                    <path d="M20 8v6M23 11h-6" />
+                  </svg>
+                  <span className="ml-3">{loading ? 'Đang đăng nhập...' : 'Sign in'}</span>
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+        <div className="flex-1 bg-indigo-100 text-center hidden lg:flex">
+          <div
+            className="m-12 xl:m-16 w-full bg-contain bg-center bg-no-repeat"
+            style={{
+              backgroundImage:
+                "url('https://storage.googleapis.com/devitary-image-host.appspot.com/15848031292911696601-undraw_designer_life_w96d.svg')",
+            }}
+          ></div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default LoginPage;

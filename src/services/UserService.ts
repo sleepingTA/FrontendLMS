@@ -6,7 +6,7 @@ export const getAllUsers = async (): Promise<User[]> => {
     const response = await axiosInstance.get<ApiResponse<User[]>>('/users');
     return response.data.data || [];
   } catch (error) {
-    throw new Error('Failed to fetch users');
+    throw new Error('Không thể lấy danh sách người dùng');
   }
 };
 
@@ -15,7 +15,7 @@ export const getUserById = async (id: number): Promise<User | null> => {
     const response = await axiosInstance.get<ApiResponse<User>>(`/users/${id}`);
     return response.data.data || null;
   } catch (error) {
-    throw new Error('Failed to fetch user');
+    throw new Error('Không thể lấy thông tin người dùng');
   }
 };
 
@@ -30,7 +30,7 @@ export const createUser = async (user: {
     const response = await axiosInstance.post<ApiResponse<{ userId: number }>>('/users', user);
     return response.data.data?.userId || 0;
   } catch (error) {
-    throw new Error('Failed to create user');
+    throw new Error('Không thể tạo người dùng');
   }
 };
 
@@ -47,15 +47,28 @@ export const updateUser = async (
   try {
     await axiosInstance.put(`/users/${id}`, user);
   } catch (error) {
-    throw new Error('Failed to update user');
+    throw new Error('Không thể cập nhật người dùng');
   }
 };
 
-export const updateAvatar = async (id: number, avatar: string): Promise<void> => {
+export const updateAvatar = async (id: number, avatarFile: File): Promise<string> => {
   try {
-    await axiosInstance.patch(`/users/${id}/avatar`, { avatar });
+    const formData = new FormData();
+    formData.append('avatar', avatarFile); // Tên field khớp với multer
+
+    const response = await axiosInstance.patch<ApiResponse<{ avatar: string }>>(
+      `/users/${id}/avatar`,
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      }
+    );
+
+    return response.data.data?.avatar || '';
   } catch (error) {
-    throw new Error('Failed to update avatar');
+    throw new Error('Không thể cập nhật avatar');
   }
 };
 
@@ -63,7 +76,7 @@ export const deleteUser = async (id: number): Promise<void> => {
   try {
     await axiosInstance.delete(`/users/${id}`);
   } catch (error) {
-    throw new Error('Failed to delete user');
+    throw new Error('Không thể xóa người dùng');
   }
 };
 
@@ -71,6 +84,6 @@ export const verifyEmail = async (id: number, verification_token: string): Promi
   try {
     await axiosInstance.post('/users/verify-email', { id, verification_token });
   } catch (error) {
-    throw new Error('Email verification failed');
+    throw new Error('Xác minh email thất bại');
   }
 };
