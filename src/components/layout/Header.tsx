@@ -52,9 +52,9 @@ const Header = () => {
                   d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" />
               </svg>
             </button>
-            <Link to="/" onClick={() => setIsOpen(false)} className="ml-6">
-              <img src="https://readymadeui.com/readymadeui.svg" alt="logo" className="w-32 max-sm:hidden" />
-              <img src="https://readymadeui.com/readymadeui-short.svg" alt="logo" className="w-7 h-7 hidden max-sm:block" />
+            <Link to="/" onClick={() => setIsOpen(false)} className="ml-6 flex items-center space-x-2">
+              
+              <span className="text-xl font-bold text-blue-500 max-sm:hidden">Skill Aura</span>
             </Link>
           </div>
 

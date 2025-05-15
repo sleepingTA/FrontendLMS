@@ -29,7 +29,7 @@ axiosInstance.interceptors.response.use(
       try {
         const { refreshToken } = await import('../services/AuthService');
         await refreshToken();
-        // Retry the original request
+       
         const token = localStorage.getItem('accessToken');
         if (token) {
           error.config.headers.Authorization = `Bearer ${token}`;
@@ -46,24 +46,6 @@ axiosInstance.interceptors.response.use(
   }
 );
 
-export const getAllCourses = async (): Promise<Course[]> => {
-  try {
-    const response = await axiosInstance.get<ApiResponse<Course[]>>('/courses');
-    return response.data.success ? response.data.data ?? [] : [];
-  } catch (error) {
-    console.error('Error fetching courses:', error);
-    throw error;
-  }
-};
 
-export const getCourseById = async (id: number): Promise<Course | null> => {
-  try {
-    const response = await axiosInstance.get<ApiResponse<Course>>(`/courses/${id}`);
-    return response.data.success && response.data.data ? response.data.data : null;
-  } catch (error) {
-    console.error(`Error fetching course with id ${id}:`, error);
-    throw error;
-  }
-};
 
 export default axiosInstance;

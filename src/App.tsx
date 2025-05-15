@@ -25,7 +25,7 @@ function App() {
         <Route path="/unpaid" element={<CourseDetail />} />
         <Route path="/mycourses" element={<CoursePage />} />
         <Route path="/player" element={<CourseProgress />} />
-        <Route path="/coursescategory" element={<CourseCategory />} />
+        
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/cart" element={<ShoppingCart />} />
         <Route path="/checkout" element={<CheckOut />} />

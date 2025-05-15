@@ -1,8 +1,33 @@
-import axiosInstance, { getAllCourses, getCourseById } from '../config/axios';
+import axiosInstance from '../config/axios'; 
 import { ApiResponse, Course } from '../types/types';
 
-export { getAllCourses, getCourseById };
+export const getAllCourses = async (): Promise<Course[]> => {
+  try {
+    const response = await axiosInstance.get<Course[]>('http://localhost:3000/api/courses');
+    console.log('API Response:', response.data);
 
+    // Dữ liệu trả về là một mảng trực tiếp, không cần kiểm tra success
+    const coursesData = Array.isArray(response.data) ? response.data : [];
+    return coursesData;
+  } catch (error: any) {
+    console.error('Error fetching courses:', {
+      message: error.message,
+      status: error.response?.status,
+      data: error.response?.data
+    });
+    throw new Error('Failed to fetch courses: ' + (error.response?.data?.message || error.message));
+  }
+};
+
+export const getCourseById = async (id: number): Promise<Course | null> => {
+  try {
+    const response = await axiosInstance.get<ApiResponse<Course>>(`/courses/${id}`);
+    return response.data.success && response.data.data ? response.data.data : null;
+  } catch (error) {
+    console.error(`Error fetching course with id ${id}:`, error);
+    throw error;
+  }
+};
 export const getCourseDetails = async (id: number): Promise<Course | null> => {
   try {
     const response = await axiosInstance.get<ApiResponse<Course>>(`/courses/${id}/details`);
