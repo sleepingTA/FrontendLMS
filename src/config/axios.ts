@@ -1,4 +1,4 @@
-// axios.ts
+
 import axios from 'axios';
 import { ApiResponse, Course } from '../types/types';
 

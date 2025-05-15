@@ -12,6 +12,7 @@ import CourseCategory from './pages/CourseCategory'
 import ProfilePage from './pages/ProfilePage'
 import CoursePaid from './pages/CoursePaid'
 import CourseProgress from './pages/CourseProgress'
+import LoginPage from './pages/LoginPage'
 
 function App() {
 
@@ -25,7 +26,7 @@ function App() {
         <Route path="/unpaid" element={<CourseDetail />} />
         <Route path="/mycourses" element={<CoursePage />} />
         <Route path="/player" element={<CourseProgress />} />
-        
+        <Route path="/login" element={<LoginPage />} />
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/cart" element={<ShoppingCart />} />
         <Route path="/checkout" element={<CheckOut />} />
