@@ -122,3 +122,23 @@ export interface Enrollment {
   course_id: number;
   enrollment_date: string;
 }
+// types.ts
+export interface LoginResponse {
+  success: boolean;
+  data: {
+    accessToken: string;
+    refreshToken: string;
+    user: {
+      id: number;
+      email: string;
+      full_name: string;
+      role: string;
+    };
+  };
+}
+
+export interface RegisterResponse {
+  success: boolean;
+  message: string;
+  userId?: number; // Tùy thuộc vào response từ backend
+}

@@ -2,17 +2,14 @@ import axiosInstance from '../config/axios';
 import { ApiResponse, LoginResponse, User } from '../types/types';
 import { auth, googleProvider, signInWithPopup } from '../config/firebase'; 
 
-export const register = async (email: string, password: string, full_name: string): Promise<number> => {
-  try {
-    const response = await axiosInstance.post<ApiResponse<{ userId: number }>>('/auth/register', {
-      email,
-      password,
-      full_name,
-    });
-    return response.data.data?.userId || 0;
-  } catch (error) {
-    throw new Error('Registration failed');
-  }
+export const register = async (fullName: string, email: string, password: string) => {
+  const response = await axiosInstance.post('/auth/register', {
+    full_name: fullName,
+    email,
+    password,
+  });
+  
+  return response.data;
 };
 
 export const verifyEmail = async (token: string): Promise<void> => {

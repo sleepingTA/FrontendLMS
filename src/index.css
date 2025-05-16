@@ -55,6 +55,6 @@ h1 {
 }
 
 .course-card {
-  @apply w-[285px] h-[350px] py-[20px] mb-[20px] col-span-3 bg-white rounded-[12px] shadow-lg flex flex-col items-center justify-center gap-[8px] p-[16px] cursor-pointer transform transition-transform duration-200 hover:scale-105;
+  @apply w-[285px] h-[350px] py-[20px] mb-[20px] bg-white rounded-[12px] shadow-lg flex flex-col items-center justify-center gap-[8px] p-[16px] cursor-pointer transform transition-transform duration-200 hover:scale-105;
 }
 

@@ -13,6 +13,7 @@ import ProfilePage from './pages/ProfilePage'
 import CoursePaid from './pages/CoursePaid'
 import CourseProgress from './pages/CourseProgress'
 import LoginPage from './pages/LoginPage'
+import RegisterPage from './pages/RegisterPage'
 
 function App() {
 
@@ -27,6 +28,8 @@ function App() {
         <Route path="/mycourses" element={<CoursePage />} />
         <Route path="/player" element={<CourseProgress />} />
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/courses/:id" element={<CourseDetail />} />
+        <Route path="/register" element={<RegisterPage />} />
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/cart" element={<ShoppingCart />} />
         <Route path="/checkout" element={<CheckOut />} />
