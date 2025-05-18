@@ -41,13 +41,13 @@ export interface Course {
   thumbnail_url?: string;
   is_active: boolean;
   total_students?: number;
+  rating?: number;
   avg_rating?: number;
   total_reviews?: number;
   views?: number;
   created_at?: string;
   updated_at?: string;
 }
-
 // Lesson
 export interface Lesson {
   id: number;

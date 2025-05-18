@@ -7,7 +7,7 @@ import PriceFilterDropdown from '../components/ui/PriceFilterDropdown';
 import RatingFilterDropdown from '../components/ui/RatingFilterDropdown';
 import DataScience from '../assets/images/datascience.png';
 
-export default function CourseCategory() {
+export default function AllCourses() {
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -115,7 +115,7 @@ export default function CourseCategory() {
                   <span className="text-[16px] font-bold text-[#3DCBB1]">
                     {(course.price || 0).toLocaleString()} ₫
                   </span>
-                  {course.discount_percentage && course.discount_percentage !== '0' && (
+                  {course.discount_percentage && Number(course.discount_percentage) !== 0 && (
                     <span className="text-[16px] font-bold text-gray-500 line-through">
                       {(
                         (course.price || 0) / (1 - (course.discount_percentage || 0) / 100)

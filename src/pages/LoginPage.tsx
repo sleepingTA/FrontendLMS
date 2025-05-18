@@ -1,6 +1,8 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { login, googleLogin, isAuthenticated } from '../services/AuthService';
+import { useAuth } from '../context/AuthContext';
 import { LoginResponse } from '../types/types';
 
 const LoginPage: React.FC = () => {
@@ -9,8 +11,8 @@ const LoginPage: React.FC = () => {
   const [error, setError] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
   const navigate = useNavigate();
+  const { setAuth } = useAuth();
 
-  // Kiểm tra nếu đã đăng nhập thì điều hướng tới trang chủ
   useEffect(() => {
     if (isAuthenticated()) {
       navigate('/');
@@ -26,12 +28,11 @@ const LoginPage: React.FC = () => {
     try {
       const response: LoginResponse = await login(email, password);
       console.log('Đăng nhập thành công:', response);
+      setAuth(true, { ...response.user, id: String(response.user.id) }); 
       navigate('/');
     } catch (err) {
       setError(
-        err && typeof err === 'object' && 'message' in err
-          ? String((err as { message?: string }).message)
-          : 'Đăng nhập thất bại. Vui lòng kiểm tra email hoặc mật khẩu.'
+        err instanceof Error ? err.message : 'Đăng nhập thất bại. Vui lòng kiểm tra email hoặc mật khẩu.'
       );
     } finally {
       setLoading(false);
@@ -46,12 +47,11 @@ const LoginPage: React.FC = () => {
     try {
       const response: LoginResponse = await googleLogin();
       console.log('Đăng nhập Google thành công:', response);
+      setAuth(true, { ...response.user, id: String(response.user.id) }); 
       navigate('/');
     } catch (err) {
       setError(
-        err && typeof err === 'object' && 'message' in err
-          ? String((err as { message?: string }).message)
-          : 'Đăng nhập Google thất bại. Vui lòng thử lại.'
+        err instanceof Error ? err.message : 'Đăng nhập Google thất bại. Vui lòng thử lại.'
       );
     } finally {
       setLoading(false);
@@ -117,8 +117,8 @@ const LoginPage: React.FC = () => {
                   className="w-full px-8 py-4 rounded-lg font-medium bg-gray-100 border border-gray-200 placeholder-gray-500 text-sm focus:outline-none focus:border-gray-400 focus:bg-white"
                   type="email"
                   placeholder="Email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  value={email} // Sửa lỗi cú pháp: thay 'value(charset) {email}' thành 'value={email}'
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
                   required
                 />
                 <input
@@ -126,21 +126,15 @@ const LoginPage: React.FC = () => {
                   type="password"
                   placeholder="Password"
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
                   required
                 />
 
                 <div className="flex justify-between items-center mt-4">
-                  <Link
-                    to="/forgot-password"
-                    className="text-sm text-blue-600 hover:underline"
-                  >
+                  <Link to="/forgot-password" className="text-sm text-blue-600 hover:underline">
                     Forgot your password?
                   </Link>
-                  <Link
-                    to="/register"
-                    className="text-sm text-blue-600 hover:underline"
-                  >
+                  <Link to="/register" className="text-sm text-blue-600 hover:underline">
                     Register here
                   </Link>
                 </div>

@@ -16,7 +16,7 @@ export default function Security() {
                         <input
                             type="email"
                             readOnly
-                            value="nguyenthanhhuy22806010208@gmail.com"
+                            value="hoangthaianh397@gmail.com"
                             className="w-full border border-gray-300 rounded-md px-4 py-2 pr-10 bg-gray-100 cursor-not-allowed"
                         />
                         <button className="absolute right-2 top-2.5 text-purple-600 hover:text-purple-800">

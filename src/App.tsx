@@ -3,17 +3,17 @@ import './index.css'
 import Home from './pages/Home'
 import Footer from './components/layout/Footer'
 import CourseDetail from './pages/CourseDetail'
-import CoursePage from './pages/CoursePage' 
+import MyCourses from '../src/pages/MyCourses'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import Header from './components/layout/Header'
 import ShoppingCart from './pages/ShoppingCart'
 import CheckOut from './pages/CheckoutPage'
-import CourseCategory from './pages/CourseCategory'
 import ProfilePage from './pages/ProfilePage'
 import CoursePaid from './pages/CoursePaid'
 import CourseProgress from './pages/CourseProgress'
 import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
+import AllCourses from './pages/AllCourses'
 
 function App() {
 
@@ -23,9 +23,9 @@ function App() {
       <Header />
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/courses" element={<CourseCategory />} />
-        <Route path="/unpaid" element={<CourseDetail />} />
-        <Route path="/mycourses" element={<CoursePage />} />
+        <Route path="/courses" element={<AllCourses />} />
+        
+        <Route path="/mycourses" element={<MyCourses />} />
         <Route path="/player" element={<CourseProgress />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/courses/:id" element={<CourseDetail />} />

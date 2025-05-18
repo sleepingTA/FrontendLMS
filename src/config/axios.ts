@@ -1,4 +1,4 @@
-
+// src/config/axios.ts
 import axios from 'axios';
 import { ApiResponse, Course } from '../types/types';
 
@@ -25,27 +25,33 @@ axiosInstance.interceptors.request.use(
 axiosInstance.interceptors.response.use(
   (response) => response,
   async (error) => {
-    if (error.response?.status === 401) {
+    const originalRequest = error.config;
+    if (
+      error.response?.status === 401 &&
+      !originalRequest._retry &&
+      originalRequest.url !== '/auth/login' &&
+      originalRequest.url !== '/auth/refresh-token' &&
+      originalRequest.url !== '/auth/logout' 
+    ) {
+      originalRequest._retry = true;
       try {
         const { refreshToken } = await import('../services/AuthService');
         await refreshToken();
-       
         const token = localStorage.getItem('accessToken');
         if (token) {
-          error.config.headers.Authorization = `Bearer ${token}`;
+          originalRequest.headers.Authorization = `Bearer ${token}`;
         }
-        return axiosInstance(error.config);
+        return axiosInstance(originalRequest);
       } catch (refreshError) {
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');
         localStorage.removeItem('user');
         window.location.href = '/auth';
+        return Promise.reject(refreshError);
       }
     }
     return Promise.reject(error);
   }
 );
-
-
 
 export default axiosInstance;

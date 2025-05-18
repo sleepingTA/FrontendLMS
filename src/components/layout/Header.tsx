@@ -1,39 +1,24 @@
+// src/components/Header.tsx
 import React, { useEffect, useRef, useState } from 'react';
 import { FaShoppingCart } from 'react-icons/fa';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { isAuthenticated as checkAuth, logout } from '../../services/AuthService';
+import { logout } from '../../services/AuthService';
+import { useAuth } from '../../context/AuthContext';
 
 const Header: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { isAuthenticated, user, setAuth } = useAuth();
 
-  // Ẩn header nếu đang ở trang player
   if (location.pathname.includes('/player')) return null;
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-  const [user, setUser] = useState<{ avatar?: string; full_name?: string } | null>(null);
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const buttonRef = useRef<HTMLButtonElement>(null); // Ref cho nút avatar
+  const buttonRef = useRef<HTMLButtonElement>(null);
 
-  // Kiểm tra trạng thái đăng nhập và lấy thông tin user
   useEffect(() => {
-    const authStatus = checkAuth();
-    setIsAuthenticated(authStatus);
-
-    if (authStatus) {
-      const storedUser = localStorage.getItem('user');
-      if (storedUser) {
-        setUser(JSON.parse(storedUser));
-      }
-    } else {
-      setUser(null);
-    }
-  }, []);
-
-  // Xử lý dropdown click outside
-  useEffect(() => {
+    console.log('Header state:', { isAuthenticated, user }); // Debug trạng thái
     const handleClickOutside = (event: MouseEvent) => {
       if (
         dropdownRef.current &&
@@ -49,7 +34,7 @@ const Header: React.FC = () => {
     return () => {
       document.removeEventListener('click', handleClickOutside);
     };
-  }, []);
+  }, [isAuthenticated, user]);
 
   const handleToggleMenu = () => {
     setIsMenuOpen((prev) => !prev);
@@ -61,21 +46,28 @@ const Header: React.FC = () => {
 
   const handleLogout = async () => {
     try {
-      await logout(); // Gọi hàm logout từ AuthService
-      setIsAuthenticated(false);
-      setUser(null);
+      await logout(); 
+      setAuth(false, null);
       setIsOpen(false);
-      navigate('/login'); // Điều hướng về trang login
+      navigate('/login', { replace: true }); 
     } catch (error) {
       console.error('Đăng xuất thất bại:', error);
+      
+      setAuth(false, null);
+      setIsOpen(false);
+      navigate('/login', { replace: true });
     }
+  };
+
+  const handleNavigate = (path: string) => {
+    setIsOpen(false);
+    navigate(path);
   };
 
   return (
     <header className="flex shadow-md sm:px-10 px-6 py-3 bg-white min-h-[70px]">
       <div className="flex w-full max-w-screen-xl mx-auto">
         <div className="flex flex-wrap items-center justify-between relative lg:gap-y-4 gap-y-4 gap-x-4 w-full">
-          {/* Menu toggle và logo */}
           <div className="flex items-center">
             <button onClick={handleToggleMenu} className="cursor-pointer" aria-label="Open menu">
               <svg className="w-8 h-8" fill="#000" viewBox="0 0 20 20">
@@ -91,7 +83,6 @@ const Header: React.FC = () => {
             </Link>
           </div>
 
-          {/* Thanh tìm kiếm */}
           <div className="bg-gray-100 flex items-center border max-md:order-1 border-transparent focus-within:border-black focus-within:bg-transparent px-4 rounded-sm h-10 min-w-[40%] lg:w-2/4 max-md:w-full transition-all">
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -107,7 +98,6 @@ const Header: React.FC = () => {
             />
           </div>
 
-          {/* Cart và User Dropdown */}
           <div className="flex items-center space-x-4 max-md:ml-auto">
             <Link
               to="/cart"
@@ -144,15 +134,17 @@ const Header: React.FC = () => {
                 <ul className="absolute top-full right-0 mt-2 bg-white shadow-lg z-50 min-w-[160px] rounded border">
                   {isAuthenticated ? (
                     <>
-                      <li className="px-5 py-3 hover:bg-gray-100 cursor-pointer">
-                        <Link to="/profile" onClick={() => setIsOpen(false)}>
-                          Settings
-                        </Link>
+                      <li
+                        className="px-5 py-3 hover:bg-gray-100 cursor-pointer"
+                        onClick={() => handleNavigate('/profile')}
+                      >
+                        Settings
                       </li>
-                      <li className="px-5 py-3 hover:bg-gray-100 cursor-pointer">
-                        <Link to="/mycourses" onClick={() => setIsOpen(false)}>
-                          My Course
-                        </Link>
+                      <li
+                        className="px-5 py-3 hover:bg-gray-100 cursor-pointer"
+                        onClick={() => handleNavigate('/mycourses')}
+                      >
+                        My Course
                       </li>
                       <li
                         className="px-5 py-3 hover:bg-gray-100 cursor-pointer"
@@ -163,15 +155,17 @@ const Header: React.FC = () => {
                     </>
                   ) : (
                     <>
-                      <li className="px-5 py-3 hover:bg-gray-100 cursor-pointer">
-                        <Link to="/login" onClick={() => setIsOpen(false)}>
-                          Login
-                        </Link>
+                      <li
+                        className="px-5 py-3 hover:bg-gray-100 cursor-pointer"
+                        onClick={() => handleNavigate('/login')}
+                      >
+                        Login
                       </li>
-                      <li className="px-5 py-3 hover:bg-gray-100 cursor-pointer">
-                        <Link to="/register" onClick={() => setIsOpen(false)}>
-                          Register
-                        </Link>
+                      <li
+                        className="px-5 py-3 hover:bg-gray-100 cursor-pointer"
+                        onClick={() => handleNavigate('/register')}
+                      >
+                        Register
                       </li>
                     </>
                   )}
@@ -181,7 +175,6 @@ const Header: React.FC = () => {
           </div>
         </div>
 
-        {/* Menu di động */}
         <div
           className={`${isMenuOpen ? 'block' : 'hidden'} before:fixed before:bg-black before:opacity-40 before:inset-0 max-lg:before:z-50`}
         >

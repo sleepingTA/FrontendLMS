@@ -1,6 +1,6 @@
 import React from 'react'
 
-export default function CoursePage() {
+export default function MyCourses() {
     return (
         <div className="py-4 mx-auto lg:max-w-6xl md:max-w-4xl max-w-xl">
             <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 text-center mb-10">My Course</h2>
