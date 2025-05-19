@@ -103,18 +103,18 @@ export interface Review {
 
 // Cart
 export interface Cart {
-  id: number;
-  user_id: number;
+  id?: number;
+  user_id?: number; 
   items: CartItem[];
+  created_at?: string; 
+  updated_at?: string; 
 }
-
 export interface CartItem {
   course_id: number;
   course_title: string;
-  price: number;
-  discounted_price?: number;
+  price: number | string; 
+  discounted_price?: number | string; 
 }
-
 // Enrollment
 export interface Enrollment {
   id: number;

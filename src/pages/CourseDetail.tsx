@@ -1,13 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { getCourseById } from '../services/CourseService';
+import { addToCart } from '../services/CartService';
 import { Course } from '../types/types';
 
 const CourseDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const [course, setCourse] = useState<Course | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>('');
+  const [cartMessage, setCartMessage] = useState<string>('');
 
   useEffect(() => {
     const fetchCourse = async () => {
@@ -22,16 +25,12 @@ const CourseDetail: React.FC = () => {
         setError('');
         const courseData = await getCourseById(Number(id));
         if (courseData) {
-          console.log('Course data received:', courseData);
-          console.log('course.price:', courseData.price, 'Type:', typeof courseData.price);
           setCourse(courseData);
         } else {
           setError('Không tìm thấy khóa học');
         }
       } catch (err) {
-        setError(
-          err instanceof Error ? err.message : 'Lỗi khi tải thông tin khóa học. Vui lòng thử lại.'
-        );
+        setError(err instanceof Error ? err.message : 'Lỗi khi tải thông tin khóa học.');
       } finally {
         setLoading(false);
       }
@@ -59,6 +58,61 @@ const CourseDetail: React.FC = () => {
     return stars;
   };
 
+  const handleAddToCart = async () => {
+    if (!course) return;
+
+    try {
+      await addToCart(course.id);
+      setCartMessage('Khóa học đã được thêm vào giỏ hàng!');
+      setTimeout(() => setCartMessage(''), 3000);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Lỗi không xác định khi thêm vào giỏ hàng.';
+      if (errorMessage.includes('EnrollmentModel.checkEnrollment is not a function')) {
+        setCartMessage('Hệ thống gặp lỗi. Vui lòng liên hệ hỗ trợ hoặc thử lại sau.');
+      } else if (errorMessage.includes('Khóa học đã có trong giỏ hàng')) {
+        setCartMessage('Khóa học này đã có trong giỏ hàng. Bạn có muốn xem giỏ hàng không?');
+        setTimeout(() => {
+          if (window.confirm('Xem giỏ hàng?')) {
+            navigate('/cart');
+          }
+          setCartMessage('');
+        }, 3000);
+      } else if (errorMessage.includes('Bạn đã mua khóa học này')) {
+        setCartMessage('Bạn đã mua khóa học này. Không thể thêm vào giỏ hàng.');
+      } else {
+        setCartMessage(`Lỗi: ${errorMessage}`);
+      }
+      setTimeout(() => setCartMessage(''), 5000);
+      console.error('Add to cart error:', err);
+    }
+  };
+
+  const handleBuyNow = async () => {
+    if (!course) return;
+
+    try {
+      await addToCart(course.id);
+      navigate('/cart');
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Lỗi không xác định khi thêm vào giỏ hàng.';
+      if (errorMessage.includes('EnrollmentModel.checkEnrollment is not a function')) {
+        setCartMessage('Hệ thống gặp lỗi. Vui lòng liên hệ hỗ trợ hoặc thử lại sau.');
+      } else if (errorMessage.includes('Khóa học đã có trong giỏ hàng')) {
+        setCartMessage('Khóa học này đã có trong giỏ hàng. Đang chuyển đến giỏ hàng...');
+        setTimeout(() => {
+          navigate('/cart');
+          setCartMessage('');
+        }, 3000);
+      } else if (errorMessage.includes('Bạn đã mua khóa học này')) {
+        setCartMessage('Bạn đã mua khóa học này. Không thể thêm vào giỏ hàng.');
+      } else {
+        setCartMessage(`Lỗi: ${errorMessage}`);
+      }
+      setTimeout(() => setCartMessage(''), 5000);
+      console.error('Buy now error:', err);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
@@ -83,22 +137,26 @@ const CourseDetail: React.FC = () => {
     );
   }
 
-  // Chuyển đổi price và discount_percentage thành number
   const price = Number(course.price);
   const discountPercentage = Number(course.discount_percentage) || 0;
-
-  // Tính giá sau khi giảm giá
-  const discountedPrice =
-    discountPercentage > 0 ? price * (1 - discountPercentage / 100) : price;
+  const discountedPrice = discountPercentage > 0 ? price * (1 - discountPercentage / 100) : price;
 
   const baseUrl = 'http://localhost:3000';
+
   return (
     <div>
+      {cartMessage && (
+        <div className={`fixed top-4 left-1/2 transform -translate-x-1/2 p-3 rounded-md shadow-md z-50 ${
+          cartMessage.includes('Lỗi') || cartMessage.includes('Hệ thống') ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'
+        }`}>
+          {cartMessage}
+        </div>
+      )}
       <div className="flex lg:flex-row items-center gap-10 max-w-6xl mx-auto px-4 py-8">
         <div className="flex justify-center">
           <div className="overflow-hidden">
             <img
-              src={course.thumbnail_url ? `${baseUrl}${course.thumbnail_url}`: 'https://via.placeholder.com/600x400'}
+              src={course.thumbnail_url ? `${baseUrl}${course.thumbnail_url}` : 'https://via.placeholder.com/600x400'}
               alt={course.title}
               className="w-full h-auto object-cover rounded-lg shadow-md hover:scale-[1.05] transition-all duration-300"
             />
@@ -139,14 +197,10 @@ const CourseDetail: React.FC = () => {
                     ${discountedPrice.toFixed(2)}
                   </p>
                   <p className="text-slate-500 text-lg line-through">${price.toFixed(2)}</p>
-                  <p className="text-green-600 text-sm">
-                    Giảm {discountPercentage}%!
-                  </p>
+                  <p className="text-green-600 text-sm">Giảm {discountPercentage}%!</p>
                 </>
               ) : (
-                <p className="text-slate-900 text-4xl font-semibold">
-                  ${price.toFixed(2)}
-                </p>
+                <p className="text-slate-900 text-4xl font-semibold">${price.toFixed(2)}</p>
               )}
             </div>
           </div>
@@ -154,12 +208,14 @@ const CourseDetail: React.FC = () => {
           <div className="mt-8 space-y-4">
             <button
               type="button"
+              onClick={handleAddToCart}
               className="w-full px-4 py-2.5 cursor-pointer border border-slate-800 bg-transparent hover:bg-slate-50 text-slate-900 text-sm font-medium rounded-md"
             >
               Add to cart
             </button>
             <button
               type="button"
+              onClick={handleBuyNow}
               className="w-full px-4 py-2.5 cursor-pointer border border-slate-800 bg-slate-800 hover:bg-slate-900 text-white text-sm font-medium rounded-md"
             >
               Buy now
