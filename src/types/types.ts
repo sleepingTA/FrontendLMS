@@ -108,6 +108,7 @@ export interface Cart {
   items: CartItem[];
   created_at?: string; 
   updated_at?: string; 
+  total?: number; // Tổng tiền của giỏ hàng
 }
 export interface CartItem {
   course_id: number;
@@ -120,7 +121,12 @@ export interface Enrollment {
   id: number;
   user_id: number;
   course_id: number;
-  enrollment_date: string;
+  enrolled_at: string;
+  title: string;
+  thumbnail_url?: string;
+  price: number;
+  discounted_price?: number;
+  description?: string; 
 }
 // types.ts
 export interface LoginResponse {

@@ -28,6 +28,7 @@
     "lib-utils": "^0.0.4",
     "lib-utils-ts": "^0.0.0-test",
     "lucide-react": "^0.510.0",
+    "payos-checkout": "^1.0.9",
     "postcss": "^8.5.3",
     "react": "^19.0.0",
     "react-confetti": "^6.4.0",
