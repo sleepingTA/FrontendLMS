@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import CategoryFilterDropdown from '../components/ui/CategoryFilterDropdown';
-import { getAllCourses } from '../services/CourseService';
-import { Course } from '../types/types';
 import PriceFilterDropdown from '../components/ui/PriceFilterDropdown';
 import RatingFilterDropdown from '../components/ui/RatingFilterDropdown';
-import DataScience from '../assets/images/datascience.png';
+import { getAllCourses } from '../services/CourseService';
 import { getUserEnrollments } from '../services/EnrollmentService';
-import { Enrollment } from '../types/types';
+import { Course, Enrollment } from '../types/types';
+import DataScience from '../assets/images/datascience.png';
+import { useAuth } from '../context/AuthContext';
 
 export default function AllCourses() {
   const [courses, setCourses] = useState<Course[]>([]);
@@ -19,48 +19,51 @@ export default function AllCourses() {
     { id: string; label: string; min: number; max: number }[]
   >([]);
   const [selectedRatings, setSelectedRatings] = useState<number[]>([]);
+  const { isAuthenticated } = useAuth(); // Sử dụng AuthContext để kiểm tra trạng thái đăng nhập
 
   useEffect(() => {
-    const fetchCourses = async () => {
+    const fetchData = async () => {
       setLoading(true);
       setError(null);
       try {
-        const data = await getAllCourses();
-        console.log('Fetched Courses:', data);
-        setCourses([...data]);
+        // Lấy danh sách tất cả khóa học
+        const coursesData = await getAllCourses();
+        console.log('Fetched Courses:', coursesData);
+
+        let filteredCourses = coursesData;
+
+        // Nếu người dùng đã đăng nhập, lấy danh sách ghi danh và lọc khóa học
+        if (isAuthenticated) {
+          try {
+            const enrollmentsData = await getUserEnrollments();
+            console.log('Fetched Enrollments:', enrollmentsData);
+            setEnrollments(enrollmentsData);
+            // Lọc các khóa học chưa được ghi danh
+            filteredCourses = coursesData.filter(
+              (course) => !enrollmentsData.some((enrollment) => enrollment.course_id === course.id)
+            );
+          } catch (err: any) {
+            console.error('Failed to load enrollments:', err);
+            setEnrollments([]); // Đặt enrollments rỗng nếu lỗi
+          }
+        }
+
+        setCourses(filteredCourses);
       } catch (err: any) {
         console.error('Failed to load courses:', err);
         setError(err.message || 'Không thể tải danh sách khóa học. Vui lòng thử lại.');
-      }
-      setLoading(false);
-    };
-
-    fetchCourses();
-  }, []);
-
-  useEffect(() => {
-    const fetchEnrollments = async () => {
-      try {
-        const enrollmentsData = await getUserEnrollments();
-        console.log('Fetched Enrollments:', enrollmentsData);
-        setEnrollments(enrollmentsData);
-      } catch (err: any) {
-        console.error('Failed to load enrollments:', err);
-        setEnrollments([]);
+      } finally {
+        setLoading(false);
       }
     };
 
-    fetchEnrollments();
-  }, []);
-
-  useEffect(() => {
-    console.log('State Courses Updated:', courses);
-  }, [courses]);
+    fetchData();
+  }, [isAuthenticated]); // Chạy lại effect khi trạng thái đăng nhập thay đổi
 
   const baseUrl = 'http://localhost:3000';
 
+  // Lọc khóa học dựa trên các bộ lọc danh mục, giá và đánh giá
   const filteredCourses = courses.filter((course) => {
-    const isNotEnrolled = !enrollments.some((enrollment) => enrollment.course_id === course.id);
     const matchesCategory =
       selectedCategories.length === 0 || selectedCategories.includes(course.category_id);
     const matchesPrice =
@@ -72,7 +75,7 @@ export default function AllCourses() {
       selectedRatings.length === 0 ||
       selectedRatings.some((rating) => (course.rating || 0) >= rating);
 
-    return isNotEnrolled && matchesCategory && matchesPrice && matchesRating;
+    return matchesCategory && matchesPrice && matchesRating;
   });
 
   const renderStars = (rating: number | undefined = 0) => {
@@ -100,7 +103,9 @@ export default function AllCourses() {
 
   return (
     <div className="py-4 mx-auto lg:max-w-7xl md:max-w-4xl max-w-xl">
-      <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 text-center mb-10">Tìm khóa học của bạn</h2>
+      <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 text-center mb-10">
+        Tìm khóa học của bạn
+      </h2>
       <div className="flex">
         <CategoryFilterDropdown onFilterChange={setSelectedCategories} />
         <PriceFilterDropdown onFilterChange={setSelectedPriceRanges} />
@@ -112,7 +117,7 @@ export default function AllCourses() {
       ) : error ? (
         <p className="text-center text-red-500 mt-6">{error}</p>
       ) : filteredCourses.length === 0 ? (
-        <p className="text-center text-gray-500 mt-6">Không có khóa học nào để mua.</p>
+        <p className="text-center text-gray-500 mt-6">Không có khóa học nào để hiển thị.</p>
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 sm:gap-1 gap-4">
           {filteredCourses.map((course) => {

@@ -248,8 +248,8 @@ const Header: React.FC = () => {
               </Link>
             </li>
             <li className="border-b border-gray-300 py-3 px-3">
-              <Link to="/team" className="hover:text-blue-700 text-slate-900 block font-medium text-base" onClick={(e) => handleNavigate('/team', e)}>
-                Team
+              <Link to="/courses" className="hover:text-blue-700 text-slate-900 block font-medium text-base" onClick={(e) => handleNavigate('/courses', e)}>
+                Course
               </Link>
             </li>
             <li className="border-b border-gray-300 py-3 px-3">
