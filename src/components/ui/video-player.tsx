@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import ReactPlayer from "react-player";
 import { Slider } from "./slider";
-import { Button } from "./button";
+import { Button } from "./Button";
 import {
   Maximize,
   Minimize,
@@ -11,29 +11,24 @@ import {
   RotateCw,
   Volume2,
   VolumeX,
+  FileText, // Thêm icon cho PDF
 } from "lucide-react";
-
-interface LectureProgress {
-  _id: string;
-  title: string;
-  videoUrl: string;
-  progressValue?: number;
-}
+import { Document, Page } from "react-pdf"; 
+import "react-pdf/dist/esm/Page/AnnotationLayer.css"; 
+import "react-pdf/dist/esm/Page/TextLayer.css"; 
 
 interface VideoPlayerProps {
   width?: string | number;
   height?: string | number;
   url: string;
-  onProgressUpdate: (data: LectureProgress) => void;
-  progressData: LectureProgress;
+  onContentChange?: (isVideo: boolean) => void; 
 }
 
 function VideoPlayer({
   width = "100%",
   height = "100%",
   url,
-  onProgressUpdate,
-  progressData,
+  onContentChange,
 }: VideoPlayerProps) {
   const [playing, setPlaying] = useState<boolean>(false);
   const [volume, setVolume] = useState<number>(0.5);
@@ -42,10 +37,25 @@ function VideoPlayer({
   const [seeking, setSeeking] = useState<boolean>(false);
   const [isFullScreen, setIsFullScreen] = useState<boolean>(false);
   const [showControls, setShowControls] = useState<boolean>(true);
+  const [isVideoMode, setIsVideoMode] = useState<boolean>(true); 
+  const [numPages, setNumPages] = useState<number | null>(null); 
+  const [pageNumber, setPageNumber] = useState<number>(1); 
 
   const playerRef = useRef<ReactPlayer>(null);
   const playerContainerRef = useRef<HTMLDivElement>(null);
   const controlsTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Kiểm tra xem URL là video hay PDF
+  const isVideo = url.toLowerCase().endsWith(".mp4") || url.toLowerCase().endsWith(".webm") || url.toLowerCase().endsWith(".ogg");
+  const isPdf = url.toLowerCase().endsWith(".pdf");
+
+  // Chuyển đổi chế độ
+  const toggleContentMode = () => {
+    if (isVideo && isPdf) {
+      setIsVideoMode((prev) => !prev);
+      if (onContentChange) onContentChange(!isVideoMode);
+    }
+  };
 
   const handlePlayAndPause = () => setPlaying((prev) => !prev);
 
@@ -88,7 +98,6 @@ function VideoPlayer({
     const hh = date.getUTCHours();
     const mm = date.getUTCMinutes();
     const ss = pad(date.getUTCSeconds());
-
     return hh ? `${hh}:${pad(mm)}:${ss}` : `${mm}:${ss}`;
   };
 
@@ -106,6 +115,10 @@ function VideoPlayer({
     controlsTimeoutRef.current = setTimeout(() => setShowControls(false), 3000);
   };
 
+  const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
+    setNumPages(numPages);
+  };
+
   useEffect(() => {
     const handleFullScreenChange = () => {
       setIsFullScreen(!!document.fullscreenElement);
@@ -117,103 +130,140 @@ function VideoPlayer({
     };
   }, []);
 
-  useEffect(() => {
-    if (played === 1) {
-      onProgressUpdate({
-        ...progressData,
-        progressValue: played,
-      });
-    }
-  }, [played]);
-
   return (
     <div
       ref={playerContainerRef}
       className={`relative bg-gray-900 rounded-lg overflow-hidden shadow-2xl transition-all duration-300 ease-in-out 
-      ${isFullScreen ? "w-screen h-screen" : ""}
-      `}
+      ${isFullScreen ? "w-screen h-screen" : ""}`}
       style={{ width, height }}
       onMouseMove={handleMouseMove}
       onMouseLeave={() => setShowControls(false)}
     >
-      <ReactPlayer
-        ref={playerRef}
-        className="absolute top-0 left-0"
-        width="100%"
-        height="100%"
-        url={url}
-        playing={playing}
-        volume={volume}
-        muted={muted}
-        onProgress={handleProgress}
-      />
-      {showControls && (
-        <div className="absolute bottom-0 left-0 right-0 bg-gray-800 bg-opacity-75 p-4">
-          <Slider
-            value={[played * 100]}
-            max={100}
-            step={0.1}
-            onValueChange={handleSeekChange}
-            onValueCommit={handleSeekMouseUp}
-            className="w-full mb-4"
+      {isVideoMode && isVideo && (
+        <>
+          <ReactPlayer
+            ref={playerRef}
+            className="absolute top-0 left-0"
+            width="100%"
+            height="100%"
+            url={url}
+            playing={playing}
+            volume={volume}
+            muted={muted}
+            onProgress={handleProgress}
           />
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={handlePlayAndPause}
-                className="text-white bg-transparent hover:text-white hover:bg-gray-700"
-              >
-                {playing ? <Pause className="h-6 w-6" /> : <Play className="h-6 w-6" />}
-              </Button>
-              <Button
-                onClick={handleRewind}
-                className="text-white bg-transparent hover:text-white hover:bg-gray-700"
-                variant="ghost"
-                size="icon"
-              >
-                <RotateCcw className="h-6 w-6" />
-              </Button>
-              <Button
-                onClick={handleForward}
-                className="text-white bg-transparent hover:text-white hover:bg-gray-700"
-                variant="ghost"
-                size="icon"
-              >
-                <RotateCw className="h-6 w-6" />
-              </Button>
-              <Button
-                onClick={handleToggleMute}
-                className="text-white bg-transparent hover:text-white hover:bg-gray-700"
-                variant="ghost"
-                size="icon"
-              >
-                {muted ? <VolumeX className="h-6 w-6" /> : <Volume2 className="h-6 w-6" />}
-              </Button>
+          {showControls && (
+            <div className="absolute bottom-0 left-0 right-0 bg-gray-800 bg-opacity-75 p-4">
               <Slider
-                value={[volume * 100]}
+                value={[played * 100]}
                 max={100}
-                step={1}
-                onValueChange={handleVolumeChange}
-                className="w-24"
+                step={0.1}
+                onValueChange={handleSeekChange}
+                onValueCommit={handleSeekMouseUp}
+                className="w-full mb-4"
               />
-            </div>
-            <div className="flex items-center space-x-2">
-              <div className="text-white text-sm">
-                {formatTime(played * (playerRef.current?.getDuration() || 0))}/{" "}
-                {formatTime(playerRef.current?.getDuration() || 0)}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={handlePlayAndPause}
+                    className="text-white bg-transparent hover:text-white hover:bg-gray-700"
+                  >
+                    {playing ? <Pause className="h-6 w-6" /> : <Play className="h-6 w-6" />}
+                  </Button>
+                  <Button
+                    onClick={handleRewind}
+                    className="text-white bg-transparent hover:text-white hover:bg-gray-700"
+                    variant="ghost"
+                    size="icon"
+                  >
+                    <RotateCcw className="h-6 w-6" />
+                  </Button>
+                  <Button
+                    onClick={handleForward}
+                    className="text-white bg-transparent hover:text-white hover:bg-gray-700"
+                    variant="ghost"
+                    size="icon"
+                  >
+                    <RotateCw className="h-6 w-6" />
+                  </Button>
+                  <Button
+                    onClick={handleToggleMute}
+                    className="text-white bg-transparent hover:text-white hover:bg-gray-700"
+                    variant="ghost"
+                    size="icon"
+                  >
+                    {muted ? <VolumeX className="h-6 w-6" /> : <Volume2 className="h-6 w-6" />}
+                  </Button>
+                  <Slider
+                    value={[volume * 100]}
+                    max={100}
+                    step={1}
+                    onValueChange={handleVolumeChange}
+                    className="w-24"
+                  />
+                </div>
+                <div className="flex items-center space-x-2">
+                  <div className="text-white text-sm">
+                    {formatTime(played * (playerRef.current?.getDuration() || 0))}/{" "}
+                    {formatTime(playerRef.current?.getDuration() || 0)}
+                  </div>
+                  <Button
+                    className="text-white bg-transparent hover:text-white hover:bg-gray-700"
+                    variant="ghost"
+                    size="icon"
+                    onClick={handleFullScreen}
+                  >
+                    {isFullScreen ? <Minimize className="h-6 w-6" /> : <Maximize className="h-6 w-6" />}
+                  </Button>
+                  {isPdf && (
+                    <Button
+                      className="text-white bg-transparent hover:text-white hover:bg-gray-700"
+                      variant="ghost"
+                      size="icon"
+                      onClick={toggleContentMode}
+                    >
+                      <FileText className="h-6 w-6" />
+                    </Button>
+                  )}
+                </div>
               </div>
-              <Button
-                className="text-white bg-transparent hover:text-white hover:bg-gray-700"
-                variant="ghost"
-                size="icon"
-                onClick={handleFullScreen}
-              >
-                {isFullScreen ? <Minimize className="h-6 w-6" /> : <Maximize className="h-6 w-6" />}
-              </Button>
             </div>
+          )}
+        </>
+      )}
+      {!isVideoMode && isPdf && (
+        <div className="w-full h-full overflow-auto">
+          <Document
+            file={url}
+            onLoadSuccess={onDocumentLoadSuccess}
+            className="flex justify-center"
+          >
+            <Page pageNumber={pageNumber} width={width as number || 800} />
+          </Document>
+          <div className="flex justify-center mt-4 space-x-4">
+            <Button
+              onClick={() => setPageNumber((prev) => Math.max(prev - 1, 1))}
+              disabled={pageNumber <= 1}
+            >
+              Previous
+            </Button>
+            <span>
+              Page {pageNumber} of {numPages}
+            </span>
+            <Button
+              onClick={() => setPageNumber((prev) => Math.min(prev + 1, numPages || 1))}
+              disabled={pageNumber >= (numPages || 1)}
+            >
+              Next
+            </Button>
           </div>
+        </div>
+      )}
+      {(!isVideo && !isPdf) && (
+        <div className="flex items-center justify-center h-full text-white">
+          Unsupported file type
         </div>
       )}
     </div>

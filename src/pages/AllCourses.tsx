@@ -6,12 +6,21 @@ import { Course } from '../types/types';
 import PriceFilterDropdown from '../components/ui/PriceFilterDropdown';
 import RatingFilterDropdown from '../components/ui/RatingFilterDropdown';
 import DataScience from '../assets/images/datascience.png';
+import { getUserEnrollments } from '../services/EnrollmentService';
+import { Enrollment } from '../types/types';
 
 export default function AllCourses() {
   const [courses, setCourses] = useState<Course[]>([]);
+  const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
+  const [selectedPriceRanges, setSelectedPriceRanges] = useState<
+    { id: string; label: string; min: number; max: number }[]
+  >([]);
+  const [selectedRatings, setSelectedRatings] = useState<number[]>([]);
 
+  // Lấy danh sách khóa học
   useEffect(() => {
     const fetchCourses = async () => {
       setLoading(true);
@@ -23,12 +32,28 @@ export default function AllCourses() {
       } catch (err: any) {
         console.error('Failed to load courses:', err);
         setError(err.message || 'Failed to load courses. Please try again.');
-      } finally {
-        setLoading(false);
       }
     };
 
     fetchCourses();
+  }, []);
+
+  // Lấy danh sách ghi danh của người dùng
+  useEffect(() => {
+    const fetchEnrollments = async () => {
+      try {
+        const enrollmentsData = await getUserEnrollments();
+        console.log('Fetched Enrollments:', enrollmentsData);
+        setEnrollments(enrollmentsData);
+      } catch (err: any) {
+        console.error('Failed to load enrollments:', err);
+        setEnrollments([]);
+      } finally {
+        setLoading(false); // Đảm bảo loading tắt sau khi cả hai API hoàn tất
+      }
+    };
+
+    fetchEnrollments();
   }, []);
 
   useEffect(() => {
@@ -37,25 +62,48 @@ export default function AllCourses() {
 
   const baseUrl = 'http://localhost:3000';
 
+  // Lọc các khóa học
+  const filteredCourses = courses.filter((course) => {
+    // Lọc các khóa học mà người dùng chưa mua
+    const isNotEnrolled = !enrollments.some((enrollment) => enrollment.course_id === course.id);
+
+    // Lọc theo danh mục
+    const matchesCategory =
+      selectedCategories.length === 0 || selectedCategories.includes(course.category_id);
+
+    // Lọc theo giá
+    const matchesPrice =
+      selectedPriceRanges.length === 0 ||
+      selectedPriceRanges.some(
+        (range) => (course.price || 0) >= range.min && (course.price || 0) <= range.max
+      );
+
+    // Lọc theo xếp hạng
+    const matchesRating =
+      selectedRatings.length === 0 ||
+      selectedRatings.some((rating) => (course.avg_rating || 0) >= rating);
+
+    return isNotEnrolled && matchesCategory && matchesPrice && matchesRating;
+  });
+
   return (
-    <div className="py-4 mx-auto lg:max-w-7xl md:max-w-4xl max-w-xl"> {/* Tăng max-width để chứa 4 card */}
+    <div className="py-4 mx-auto lg:max-w-7xl md:max-w-4xl max-w-xl">
       <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 text-center mb-10">Find your course</h2>
       <div className="flex">
-        <CategoryFilterDropdown />
-        <PriceFilterDropdown />
-        <RatingFilterDropdown />
+        <CategoryFilterDropdown onFilterChange={setSelectedCategories} />
+        <PriceFilterDropdown onFilterChange={setSelectedPriceRanges} />
+        <RatingFilterDropdown onFilterChange={setSelectedRatings} />
       </div>
 
       {loading ? (
         <p className="text-center text-gray-500 mt-6 mb-6 font-bold">Loading courses...</p>
       ) : error ? (
         <p className="text-center text-red-500 mt-6">{error}</p>
-      ) : courses.length === 0 ? (
-        <p className="text-center text-gray-500 mt-6">No courses available.</p>
+      ) : filteredCourses.length === 0 ? (
+        <p className="text-center text-gray-500 mt-6">No available courses to purchase.</p>
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 sm:gap-1 gap-4">
-          
-          {courses.map((course) => (
+          {filteredCourses.map((course) => (
             <Link
               key={course.id}
               to={`/courses/${course.id}`}
@@ -127,7 +175,6 @@ export default function AllCourses() {
               </div>
             </Link>
           ))}
-          
         </div>
       )}
     </div>

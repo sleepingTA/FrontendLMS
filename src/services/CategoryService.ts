@@ -4,9 +4,16 @@ import { ApiResponse, Category } from '../types/types';
 export const getAllCategories = async (): Promise<Category[]> => {
   try {
     const response = await axiosInstance.get<ApiResponse<Category[]>>('/categories');
-    return response.data.data || [];
-  } catch (error) {
-    throw new Error('Failed to fetch categories');
+    console.log('Full API Response:', response.data); 
+    
+    return Array.isArray(response.data) ? response.data : response.data.data || [];
+  } catch (error: any) {
+    console.error('Error fetching categories:', {
+      message: error.message,
+      status: error.response?.status,
+      data: error.response?.data,
+    });
+    throw new Error('Failed to fetch categories: ' + (error.response?.data?.message || error.message));
   }
 };
 

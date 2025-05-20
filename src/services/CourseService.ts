@@ -1,5 +1,5 @@
-import axiosInstance from '../config/axios'; 
-import { ApiResponse, Course } from '../types/types';
+import axiosInstance from '../config/axios';
+import { ApiResponse, Course, Lesson } from '../types/types';
 
 export const getAllCourses = async (): Promise<Course[]> => {
   try {
@@ -44,6 +44,16 @@ export const getCourseDetails = async (id: number): Promise<Course | null> => {
     return response.data.data || null;
   } catch (error) {
     throw new Error('Failed to fetch course details');
+  }
+};
+
+export const getLessonsByCourse = async (courseId: number): Promise<Lesson[]> => {
+  try {
+    const response = await axiosInstance.get<ApiResponse<Lesson[]>>(`/courses/${courseId}/lessons`);
+    return response.data.data || [];
+  } catch (error) {
+    console.error('Error fetching lessons:', error);
+    throw new Error('Failed to fetch lessons');
   }
 };
 

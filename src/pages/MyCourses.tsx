@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { getUserEnrollments } from '../services/EnrollmentService';
 import { Enrollment } from '../types/types';
 
@@ -6,18 +7,20 @@ export default function MyCourses() {
   const [courses, setCourses] = useState<Enrollment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
+  const baseUrl = 'http://localhost:3000';
 
   useEffect(() => {
     const fetchEnrollments = async () => {
       try {
         const enrollments = await getUserEnrollments();
-        console.log('Danh sách ghi danh:', enrollments); // Log gỡ lỗi
+        console.log('Danh sách ghi danh:', enrollments);
         setCourses(Array.isArray(enrollments) ? enrollments : []);
         setLoading(false);
       } catch (err: any) {
-        console.error('Lỗi khi lấy danh sách ghi danh:', err); // Log gỡ lỗi
+        console.error('Lỗi khi lấy danh sách ghi danh:', err);
         setError(err.response?.status === 401 ? 'Vui lòng đăng nhập lại' : 'Không thể tải danh sách khóa học');
-        setCourses([]); // Đặt lại mảng rỗng nếu lỗi
+        setCourses([]);
         setLoading(false);
       }
     };
@@ -32,7 +35,7 @@ export default function MyCourses() {
   if (error) {
     return <div className="text-center py-10 text-red-500">{error}</div>;
   }
-  const baseUrl = 'http://localhost:3000';
+
   return (
     <div className="py-4 mx-auto lg:max-w-6xl md:max-w-4xl max-w-xl">
       <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 text-center mb-10">Khóa học của tôi</h2>
@@ -45,6 +48,7 @@ export default function MyCourses() {
             <div
               key={course.id}
               className="bg-gray-100 p-3 rounded-lg group overflow-hidden cursor-pointer relative z-50 hover:before:bg-black before:absolute before:inset-0 before:opacity-20 before:transition-all"
+              onClick={() => navigate(`/player?courseId=${course.course_id}`)}
             >
               <div className="w-full aspect-[3/4] overflow-hidden mx-auto">
                 <img

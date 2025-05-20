@@ -38,25 +38,35 @@ export interface Course {
   created_by: number;
   price: number;
   discount_percentage?: number;
+  discounted_price?: number;
   thumbnail_url?: string;
-  is_active: boolean;
+  is_active?: boolean;
+  views?: number;
   total_students?: number;
   rating?: number;
-  avg_rating?: number;
-  total_reviews?: number;
-  views?: number;
+  total_ratings?: number;
   created_at?: string;
   updated_at?: string;
+  lessons?: Lesson[];
 }
-// Lesson
+
+export interface LectureProgress {
+  id: string; 
+  videoUrl: string;
+  progressValue?: number;
+  materialUrl?: string;
+  title?: string; 
+}
 export interface Lesson {
   id: number;
   course_id: number;
   title: string;
   description?: string;
   order_number: number;
-  videos?: Video[];
-  materials?: Material[];
+  created_at?: string;
+  updated_at?: string;
+  videos: Video[];
+  materials: Material[];
 }
 
 export interface Video {
@@ -67,7 +77,9 @@ export interface Video {
   video_url: string;
   order_number: number;
   duration?: number;
-  is_preview: boolean;
+  is_preview?: boolean;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface Material {
@@ -76,8 +88,21 @@ export interface Material {
   title: string;
   file_url: string;
   file_type: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
+export interface Enrollment {
+  id: number;
+  user_id: number;
+  course_id: number;
+  enrolled_at: string;
+  title: string;
+  thumbnail_url?: string;
+  price: number;
+  discounted_price?: number;
+  description?: string;
+}
 // Payment
 export interface Payment {
   id: number;
@@ -116,18 +141,7 @@ export interface CartItem {
   price: number | string; 
   discounted_price?: number | string; 
 }
-// Enrollment
-export interface Enrollment {
-  id: number;
-  user_id: number;
-  course_id: number;
-  enrolled_at: string;
-  title: string;
-  thumbnail_url?: string;
-  price: number;
-  discounted_price?: number;
-  description?: string; 
-}
+
 // types.ts
 export interface LoginResponse {
   success: boolean;

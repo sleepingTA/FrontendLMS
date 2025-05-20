@@ -1,17 +1,39 @@
 import React, { useEffect, useRef, useState } from 'react';
 
-const priceRanges = [
+interface PriceRange {
+  id: string;
+  label: string;
+  min: number;
+  max: number;
+}
+
+interface PriceFilterDropdownProps {
+  onFilterChange: (selectedRanges: PriceRange[]) => void;
+}
+
+const priceRanges: PriceRange[] = [
   { id: 'under-100', label: 'Dưới 100.000₫', min: 0, max: 100000 },
   { id: '100-200', label: '100.000₫ – 200.000₫', min: 100000, max: 200000 },
   { id: '200-500', label: '200.000₫ – 500.000₫', min: 200000, max: 500000 },
   { id: 'over-500', label: 'Trên 500.000₫', min: 500001, max: Infinity },
 ];
 
-export default function PriceFilterDropdown() {
+export default function PriceFilterDropdown({ onFilterChange }: PriceFilterDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [selectedRanges, setSelectedRanges] = useState<PriceRange[]>([]);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const toggleDropdown = () => setIsOpen((prev) => !prev);
+
+  const handleCheckboxChange = (range: PriceRange) => {
+    setSelectedRanges((prev) => {
+      const updatedRanges = prev.some((r) => r.id === range.id)
+        ? prev.filter((r) => r.id !== range.id)
+        : [...prev, range];
+      onFilterChange(updatedRanges);
+      return updatedRanges;
+    });
+  };
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -50,6 +72,8 @@ export default function PriceFilterDropdown() {
                 <input
                   id={range.id}
                   type="checkbox"
+                  checked={selectedRanges.some((r) => r.id === range.id)}
+                  onChange={() => handleCheckboxChange(range)}
                   className="w-4 h-4 bg-gray-100 border-gray-300 rounded text-primary-600 focus:ring-primary-500 dark:focus:ring-primary-600 dark:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500"
                 />
                 <label

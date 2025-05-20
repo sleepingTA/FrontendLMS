@@ -1,65 +1,114 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { getAllCourses } from '../../services/CourseService';
-import { getUserEnrollments } from '../../services/EnrollmentService';
-import { Course, Enrollment } from '../../types/types';
-import DataScience from '../../assets/images/datascience.png';
+import { useLocation, useNavigate, Link } from 'react-router-dom';
+import { getAllCourses } from '../services/CourseService';
+import { Course } from '../types/types';
+import CategoryFilterDropdown from '../components/ui/CategoryFilterDropdown';
+import PriceFilterDropdown from '../components/ui/PriceFilterDropdown';
+import RatingFilterDropdown from '../components/ui/RatingFilterDropdown';
+import DataScience from '../assets/images/datascience.png';
+import { getUserEnrollments } from '../services/EnrollmentService';
+import { Enrollment } from '../types/types';
 
-const CoursesSection = () => {
+const Search: React.FC = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [courses, setCourses] = useState<Course[]>([]);
-  const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
+  const [filteredCourses, setFilteredCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
+  const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
+  const [selectedPriceRanges, setSelectedPriceRanges] = useState<
+    { id: string; label: string; min: number; max: number }[]
+  >([]);
+  const [selectedRatings, setSelectedRatings] = useState<number[]>([]);
 
-  
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchCourses = async () => {
       setLoading(true);
       setError(null);
       try {
-      
-        const coursesData = await getAllCourses();
-        console.log('Fetched Courses for CoursesSection:', coursesData);
-
-        // Lấy danh sách ghi danh
-        const enrollmentsData = await getUserEnrollments();
-        console.log('Fetched Enrollments for CoursesSection:', enrollmentsData);
-
-     
-        const filteredCourses = coursesData.filter(
-          (course) => !enrollmentsData.some((enrollment) => enrollment.course_id === course.id)
-        );
-
-        setCourses(filteredCourses.slice(0, 4));
-        setEnrollments(enrollmentsData);
+        const data = await getAllCourses();
+        setCourses(data || []);
       } catch (err: any) {
-        console.error('Failed to load data:', err);
-        setError(err.message || 'Không thể tải khóa học. Vui lòng thử lại.');
+        console.error('Failed to load courses:', err);
+        setError('Failed to load courses. Please try again.');
+      }
+    };
+
+    const fetchEnrollments = async () => {
+      try {
+        const enrollmentsData = await getUserEnrollments();
+        setEnrollments(enrollmentsData || []);
+      } catch (err: any) {
+        console.error('Failed to load enrollments:', err);
+        setEnrollments([]);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchData();
+    fetchCourses();
+    fetchEnrollments();
   }, []);
+
+  useEffect(() => {
+    const query = new URLSearchParams(location.search).get('query');
+    const applyFilters = () => {
+      let tempCourses = courses.filter((course) =>
+        (course.title?.toLowerCase().includes((query || '').toLowerCase()) ||
+          course.description?.toLowerCase().includes((query || '').toLowerCase())) &&
+        !enrollments.some((enrollment) => enrollment.course_id === course.id)
+      );
+
+      // Lọc theo danh mục
+      if (selectedCategories.length > 0) {
+        tempCourses = tempCourses.filter((course) =>
+          selectedCategories.includes(course.category_id)
+        );
+      }
+
+      // Lọc theo giá
+      if (selectedPriceRanges.length > 0) {
+        tempCourses = tempCourses.filter((course) =>
+          selectedPriceRanges.some(
+            (range) => (course.price || 0) >= range.min && (course.price || 0) <= range.max
+          )
+        );
+      }
+
+      // Lọc theo xếp hạng
+      if (selectedRatings.length > 0) {
+        tempCourses = tempCourses.filter((course) =>
+          selectedRatings.some((rating) => (course.avg_rating || 0) >= rating)
+        );
+      }
+
+      setFilteredCourses(tempCourses);
+    };
+
+    applyFilters();
+  }, [location.search, courses, enrollments, selectedCategories, selectedPriceRanges, selectedRatings]);
 
   const baseUrl = 'http://localhost:3000';
 
+  if (loading) return <p className="text-center text-gray-500 mt-6 mb-6 font-bold">Loading courses...</p>;
+  if (error) return <p className="text-center text-red-500 mt-6">{error}</p>;
+
   return (
-    <div className="py-16 md:px-40 px-8 text-center">
-      <h2 className="text-3xl font-medium text-gray-800">Learn from the best</h2>
-      <p className="text-sm md:text-base text-gray-500 mt-3 mb-[16px]">
-        Explore a variety of courses and learn from the best instructors in the field.
-      </p>
-      {loading ? (
-        <p className="text-center text-gray-500 mt-6 mb-6 font-bold">Đang tải khóa học...</p>
-      ) : error ? (
-        <p className="text-center text-red-500 mt-6">{error}</p>
-      ) : courses.length === 0 ? (
-        <p className="text-center text-gray-500 mt-6">Không có khóa học nào để hiển thị.</p>
+    <div className="py-4 mx-auto lg:max-w-7xl md:max-w-4xl max-w-xl">
+      <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 text-center mb-10">Search Results</h2>
+      <div className="flex">
+        <CategoryFilterDropdown onFilterChange={setSelectedCategories} />
+        <PriceFilterDropdown onFilterChange={setSelectedPriceRanges} />
+        <RatingFilterDropdown onFilterChange={setSelectedRatings} />
+      </div>
+
+      {filteredCourses.length === 0 ? (
+        <p className="text-center text-gray-500 mt-6">No courses found for "{new URLSearchParams(location.search).get('query')}".</p>
       ) : (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 px-4 md:px-0 md:my-16 my-10">
-          {courses.map((course) => (
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 sm:gap-1 gap-4">
+          {filteredCourses.map((course) => (
             <Link
               key={course.id}
               to={`/courses/${course.id}`}
@@ -77,10 +126,10 @@ const CoursesSection = () => {
                 />
               </div>
               <div className="course-card-title text-[16px] font-bold mt-2">
-                {course.title || 'Không có tiêu đề'}
+                {course.title || 'No Title'}
               </div>
               <div className="course-card-description text-[16px] mt-2">
-                {course.description || 'Không có mô tả'}
+                {course.description || 'No description available'}
               </div>
               <div className="course-card-button mt-4">
                 <div className="flex mr-[165px]">
@@ -133,15 +182,8 @@ const CoursesSection = () => {
           ))}
         </div>
       )}
-      <Link
-        to="/courses"
-        onClick={() => scrollTo(0, 0)}
-        className="text-gray-500 border border-500/30 px-10 py-3 rounded"
-      >
-        See all courses
-      </Link>
     </div>
   );
 };
 
-export default CoursesSection;
+export default Search;

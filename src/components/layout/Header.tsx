@@ -1,4 +1,3 @@
-// src/components/Header.tsx
 import React, { useEffect, useRef, useState } from 'react';
 import { FaShoppingCart } from 'react-icons/fa';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
@@ -10,22 +9,24 @@ const Header: React.FC = () => {
   const navigate = useNavigate();
   const { isAuthenticated, user, setAuth } = useAuth();
 
-  if (location.pathname.includes('/player')) return null;
-
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const dropdownRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    console.log('Header state:', { isAuthenticated, user }); // Debug trạng thái
+    console.log('Header state:', { isAuthenticated, user });
     const handleClickOutside = (event: MouseEvent) => {
+      console.log('Clicked outside, checking dropdown');
       if (
         dropdownRef.current &&
         !dropdownRef.current.contains(event.target as Node) &&
         buttonRef.current &&
         !buttonRef.current.contains(event.target as Node)
       ) {
+        console.log('Closing dropdown');
         setIsOpen(false);
       }
     };
@@ -36,32 +37,54 @@ const Header: React.FC = () => {
     };
   }, [isAuthenticated, user]);
 
+  if (location.pathname.includes('/player')) return null;
+
   const handleToggleMenu = () => {
+    console.log('Toggling menu, isMenuOpen:', !isMenuOpen);
     setIsMenuOpen((prev) => !prev);
   };
 
   const toggleDropdown = () => {
+    console.log('Toggling dropdown, isOpen:', !isOpen);
     setIsOpen((prev) => !prev);
   };
 
   const handleLogout = async () => {
     try {
-      await logout(); 
+      console.log('Attempting logout');
+      await logout();
       setAuth(false, null);
       setIsOpen(false);
-      navigate('/login', { replace: true }); 
+      navigate('/login', { replace: true });
     } catch (error) {
       console.error('Đăng xuất thất bại:', error);
-      
       setAuth(false, null);
       setIsOpen(false);
       navigate('/login', { replace: true });
     }
   };
 
-  const handleNavigate = (path: string) => {
+  const handleNavigate = (path: string, event?: React.MouseEvent) => {
+    console.log('Navigating to:', path);
+    event?.stopPropagation(); // Ngăn sự kiện lan tỏa để tránh xung đột với handleClickOutside
     setIsOpen(false);
     navigate(path);
+  };
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+  };
+
+  const handleSearchSubmit = (e: React.KeyboardEvent<HTMLInputElement> | React.MouseEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      console.log('Submitting search:', searchQuery);
+      navigate(`/search?query=${encodeURIComponent(searchQuery.trim())}`);
+      setSearchQuery('');
+      if (searchInputRef.current) {
+        searchInputRef.current.blur();
+      }
+    }
   };
 
   return (
@@ -78,7 +101,7 @@ const Header: React.FC = () => {
                 />
               </svg>
             </button>
-            <Link to="/" onClick={() => setIsOpen(false)} className="ml-6 flex items-center space-x-2">
+            <Link to="/" onClick={() => handleNavigate('/')} className="ml-6 flex items-center space-x-2">
               <span className="text-xl font-bold text-blue-500 max-sm:hidden">Skill Aura</span>
             </Link>
           </div>
@@ -92,16 +115,40 @@ const Header: React.FC = () => {
               <path d="m190.707 180.101-47.078-47.077c11.702-14.072 18.752-32.142 18.752-51.831C162.381 36.423 125.959 0 81.191 0 36.422 0 0 36.423 0 81.193c0 44.767 36.422 81.187 81.191 81.187 19.688 0 37.759-7.049 51.831-18.751l47.079 47.078a7.474 7.474 0 0 0 5.303 2.197 7.498 7.498 0 0 0 5.303-12.803zM15 81.193C15 44.694 44.693 15 81.191 15c36.497 0 66.189 29.694 66.189 66.193 0 36.496-29.692 66.187-66.189 66.187C44.693 147.38 15 117.689 15 81.193z" />
             </svg>
             <input
+              ref={searchInputRef}
               type="text"
               placeholder="Search..."
+              value={searchQuery}
+              onChange={handleSearchChange}
+              onKeyPress={(e) => e.key === 'Enter' && handleSearchSubmit(e)}
               className="w-full outline-none bg-transparent text-slate-900 text-sm"
             />
+            <button
+              onClick={handleSearchSubmit}
+              className="ml-2 text-gray-400 hover:text-black focus:outline-none"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="w-4 h-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
+              </svg>
+            </button>
           </div>
 
           <div className="flex items-center space-x-4 max-md:ml-auto">
             <Link
               to="/cart"
               className="border-0 outline-0 flex items-center justify-center rounded-full p-2 hover:bg-gray-100 transition-all"
+              onClick={(e) => handleNavigate('/cart', e)}
             >
               <FaShoppingCart />
             </Link>
@@ -136,13 +183,13 @@ const Header: React.FC = () => {
                     <>
                       <li
                         className="px-5 py-3 hover:bg-gray-100 cursor-pointer"
-                        onClick={() => handleNavigate('/profile')}
+                        onClick={(e) => handleNavigate('/profile', e)}
                       >
                         Settings
                       </li>
                       <li
                         className="px-5 py-3 hover:bg-gray-100 cursor-pointer"
-                        onClick={() => handleNavigate('/mycourses')}
+                        onClick={(e) => handleNavigate('/mycourses', e)}
                       >
                         My Course
                       </li>
@@ -157,13 +204,13 @@ const Header: React.FC = () => {
                     <>
                       <li
                         className="px-5 py-3 hover:bg-gray-100 cursor-pointer"
-                        onClick={() => handleNavigate('/login')}
+                        onClick={(e) => handleNavigate('/login', e)}
                       >
                         Login
                       </li>
                       <li
                         className="px-5 py-3 hover:bg-gray-100 cursor-pointer"
-                        onClick={() => handleNavigate('/register')}
+                        onClick={(e) => handleNavigate('/register', e)}
                       >
                         Register
                       </li>
@@ -194,37 +241,37 @@ const Header: React.FC = () => {
 
           <ul className="block space-y-3 fixed bg-white w-1/2 min-w-[300px] top-0 left-0 p-4 h-full shadow-md overflow-auto z-50">
             <li className="pb-4 px-3">
-              <Link to="/">
+              <Link to="/" onClick={(e) => handleNavigate('/', e)}>
                 <span className="text-xl font-bold text-blue-500">Skill Aura</span>
               </Link>
             </li>
             <li className="border-b border-gray-300 py-3 px-3">
-              <Link to="/" className="hover:text-blue-700 text-blue-700 block font-medium text-base">
+              <Link to="/" className="hover:text-blue-700 text-blue-700 block font-medium text-base" onClick={(e) => handleNavigate('/', e)}>
                 Home
               </Link>
             </li>
             <li className="border-b border-gray-300 py-3 px-3">
-              <Link to="/team" className="hover:text-blue-700 text-slate-900 block font-medium text-base">
+              <Link to="/team" className="hover:text-blue-700 text-slate-900 block font-medium text-base" onClick={(e) => handleNavigate('/team', e)}>
                 Team
               </Link>
             </li>
             <li className="border-b border-gray-300 py-3 px-3">
-              <Link to="/features" className="hover:text-blue-700 text-slate-900 block font-medium text-base">
+              <Link to="/features" className="hover:text-blue-700 text-slate-900 block font-medium text-base" onClick={(e) => handleNavigate('/features', e)}>
                 Feature
               </Link>
             </li>
             <li className="border-b border-gray-300 py-3 px-3">
-              <Link to="/blog" className="hover:text-blue-700 text-slate-900 block font-medium text-base">
+              <Link to="/blog" className="hover:text-blue-700 text-slate-900 block font-medium text-base" onClick={(e) => handleNavigate('/blog', e)}>
                 Blog
               </Link>
             </li>
             <li className="border-b border-gray-300 py-3 px-3">
-              <Link to="/about" className="hover:text-blue-700 text-slate-900 block font-medium text-base">
+              <Link to="/about" className="hover:text-blue-700 text-slate-900 block font-medium text-base" onClick={(e) => handleNavigate('/about', e)}>
                 About
               </Link>
             </li>
             <li className="border-b border-gray-300 py-3 px-3">
-              <Link to="/contact" className="hover:text-blue-700 text-slate-900 block font-medium text-base">
+              <Link to="/contact" className="hover:text-blue-700 text-slate-900 block font-medium text-base" onClick={(e) => handleNavigate('/contact', e)}>
                 Contact
               </Link>
             </li>

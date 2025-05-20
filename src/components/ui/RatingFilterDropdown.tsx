@@ -1,6 +1,16 @@
 import React, { useEffect, useRef, useState } from 'react';
 
-const ratingOptions = [
+interface RatingOption {
+  id: string;
+  label: string;
+  value: number;
+}
+
+interface RatingFilterDropdownProps {
+  onFilterChange: (selectedRatings: number[]) => void;
+}
+
+const ratingOptions: RatingOption[] = [
   { id: '5', label: '5 sao', value: 5 },
   { id: '4', label: '4 sao trở lên', value: 4 },
   { id: '3', label: '3 sao trở lên', value: 3 },
@@ -8,11 +18,22 @@ const ratingOptions = [
   { id: '1', label: '1 sao trở lên', value: 1 },
 ];
 
-const RatingFilterDropdown: React.FC = () => {
+const RatingFilterDropdown: React.FC<RatingFilterDropdownProps> = ({ onFilterChange }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [selectedRatings, setSelectedRatings] = useState<number[]>([]);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const toggleDropdown = () => setIsOpen((prev) => !prev);
+
+  const handleCheckboxChange = (ratingValue: number) => {
+    setSelectedRatings((prev) => {
+      const updatedRatings = prev.includes(ratingValue)
+        ? prev.filter((r) => r !== ratingValue)
+        : [...prev, ratingValue];
+      onFilterChange(updatedRatings);
+      return updatedRatings;
+    });
+  };
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -51,6 +72,8 @@ const RatingFilterDropdown: React.FC = () => {
                 <input
                   id={`rating-${option.id}`}
                   type="checkbox"
+                  checked={selectedRatings.includes(option.value)}
+                  onChange={() => handleCheckboxChange(option.value)}
                   className="w-4 h-4 bg-gray-100 border-gray-300 rounded text-primary-600 focus:ring-primary-500 dark:focus:ring-primary-600 dark:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500"
                 />
                 <label
