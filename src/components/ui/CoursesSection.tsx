@@ -4,34 +4,34 @@ import { getAllCourses } from '../../services/CourseService';
 import { getUserEnrollments } from '../../services/EnrollmentService';
 import { Course, Enrollment } from '../../types/types';
 import DataScience from '../../assets/images/datascience.png';
+import { useAuth } from '../../context/AuthContext';
 
 const CoursesSection = () => {
   const [courses, setCourses] = useState<Course[]>([]);
   const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const { isAuthenticated } = useAuth();
 
-  
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       setError(null);
       try {
-      
         const coursesData = await getAllCourses();
         console.log('Fetched Courses for CoursesSection:', coursesData);
 
-        // Lấy danh sách ghi danh
-        const enrollmentsData = await getUserEnrollments();
-        console.log('Fetched Enrollments for CoursesSection:', enrollmentsData);
-
-     
-        const filteredCourses = coursesData.filter(
-          (course) => !enrollmentsData.some((enrollment) => enrollment.course_id === course.id)
-        );
+        let filteredCourses = coursesData;
+        if (isAuthenticated) {
+          const enrollmentsData = await getUserEnrollments();
+          console.log('Fetched Enrollments for CoursesSection:', enrollmentsData);
+          filteredCourses = coursesData.filter(
+            (course) => !enrollmentsData.some((enrollment) => enrollment.course_id === course.id)
+          );
+          setEnrollments(enrollmentsData);
+        }
 
         setCourses(filteredCourses.slice(0, 4));
-        setEnrollments(enrollmentsData);
       } catch (err: any) {
         console.error('Failed to load data:', err);
         setError(err.message || 'Không thể tải khóa học. Vui lòng thử lại.');
@@ -41,7 +41,7 @@ const CoursesSection = () => {
     };
 
     fetchData();
-  }, []);
+  }, [isAuthenticated]);
 
   const baseUrl = 'http://localhost:3000';
 

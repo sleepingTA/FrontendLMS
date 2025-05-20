@@ -10,11 +10,12 @@ import {
 import { Label } from "../components/ui/label";
 import { ScrollArea } from "../components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
-import { ChevronLeft, ChevronRight, Play } from "lucide-react";
+import { ChevronLeft, ChevronRight, Play, Star } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import VideoPlayer from "../components/ui/video-player";
 import { getCourseDetails } from "../services/CourseService";
-import { Lesson, Video, Material } from "../types/types";
+import { getReviewsByCourse, createReview } from "../services/ReviewService";
+import { Lesson, Video, Material, Review } from "../types/types";
 
 interface CourseDetails {
   _id: string;
@@ -34,9 +35,12 @@ function CourseProgress() {
   const [isSideBarOpen, setIsSideBarOpen] = useState(true);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [rating, setRating] = useState<number>(0);
+  const [comment, setComment] = useState<string>("");
+  const [reviewError, setReviewError] = useState<string | null>(null);
 
   useEffect(() => {
-    console.log('useEffect called with courseId:', courseId);
     const fetchCourseData = async () => {
       try {
         if (!courseId) {
@@ -66,12 +70,6 @@ function CourseProgress() {
         });
 
         setCurrentLesson(curriculum[0] || null);
-
-        console.log('Course Data:', courseData);
-        console.log('Curriculum:', curriculum);
-        console.log('Current Lesson:', curriculum[0]);
-        console.log('Current Video:', currentVideo);
-
         setLoading(false);
       } catch (err: any) {
         console.error('Lỗi khi lấy dữ liệu khóa học:', err);
@@ -83,22 +81,67 @@ function CourseProgress() {
     fetchCourseData();
   }, [courseId]);
 
+  useEffect(() => {
+    const fetchReviews = async () => {
+      try {
+        const reviewsData = await getReviewsByCourse(courseId);
+        setReviews(reviewsData.filter((review: Review) => review.is_approved));
+      } catch (err: any) {
+        console.error('Lỗi khi lấy đánh giá:', err);
+        setReviewError('Không thể tải đánh giá');
+      }
+    };
+
+    if (courseId) {
+      fetchReviews();
+    }
+  }, [courseId]);
+
   const handleLessonClick = (lesson: Lesson) => {
     setCurrentLesson(lesson);
-    setCurrentVideo(null); // Xóa video hiện tại khi chọn lesson mới
-    setCurrentMaterial(null); // Xóa PDF hiện tại khi chọn lesson mới
+    setCurrentVideo(null);
+    setCurrentMaterial(null);
   };
 
   const handleVideoClick = (video: Video) => {
-    console.log('Video clicked:', video);
     setCurrentVideo(video);
-    setCurrentMaterial(null); // Xóa PDF khi chọn video
+    setCurrentMaterial(null);
   };
 
   const handleMaterialClick = (material: Material) => {
-    console.log('Material clicked:', material);
     setCurrentMaterial(material);
-    setCurrentVideo(null); // Xóa video khi chọn PDF
+    setCurrentVideo(null);
+  };
+
+  const handleSubmitReview = async () => {
+    try {
+      if (rating < 1 || rating > 5) {
+        setReviewError('Vui lòng chọn số sao từ 1 đến 5');
+        return;
+      }
+      await createReview(courseId, { rating, comment });
+      setRating(0);
+      setComment("");
+      setReviewError(null);
+      const reviewsData = await getReviewsByCourse(courseId);
+      setReviews(reviewsData.filter((review: Review) => review.is_approved));
+    } catch (err: any) {
+      setReviewError(err.message || 'Lỗi khi gửi đánh giá');
+    }
+  };
+
+  const renderStars = (rating: number) => {
+    return (
+      <div className="flex">
+        {[...Array(5)].map((_, index) => (
+          <Star
+            key={index}
+            className={`h-5 w-5 ${index < rating ? "text-yellow-400" : "text-gray-400"}`}
+            fill={index < rating ? "currentColor" : "none"}
+          />
+        ))}
+      </div>
+    );
   };
 
   let content;
@@ -113,8 +156,6 @@ function CourseProgress() {
   } else {
     const videoUrl = currentVideo?.video_url ? `http://localhost:3000/${currentVideo.video_url}` : "";
     const materialUrl = currentMaterial?.file_url ? `http://localhost:3000/${currentMaterial.file_url}` : "";
-    console.log('VideoPlayer URL:', videoUrl);
-    console.log('Material URL:', materialUrl);
 
     content = (
       <div className="flex flex-col min-h-screen bg-[#1c1d1f] text-white">
@@ -136,7 +177,6 @@ function CourseProgress() {
           </Button>
         </div>
         <div className="flex flex-1">
-          {/* Danh sách lesson, video, PDF (bên trái) */}
           <div
             className={`fixed top-[64px] left-0 bottom-0 w-[400px] bg-[#1c1d1f] border-r border-gray-700 transition-all duration-300 ${
               isSideBarOpen ? "translate-x-0" : "-translate-x-full"
@@ -218,18 +258,13 @@ function CourseProgress() {
               </TabsContent>
             </Tabs>
           </div>
-          {/* Khung cố định bên phải: Hiển thị video hoặc PDF */}
           <div className={`flex-1 ${isSideBarOpen ? "ml-[400px]" : ""} transition-all duration-300`}>
             <div className="p-6 bg-[#1c1d1f] text-white">
               <div className="text-2xl font-bold">{currentLesson?.title || "Không có bài học được chọn"}</div>
               {currentVideo ? (
                 <div className="mt-4">
                   <h3 className="text-lg font-semibold">Video: {currentVideo.title}</h3>
-                  <VideoPlayer
-                    width="100%"
-                    height="500px"
-                    url={videoUrl}
-                  />
+                  <VideoPlayer width="100%" height="500px" url={videoUrl} />
                 </div>
               ) : currentMaterial ? (
                 <div className="mt-4">
@@ -248,6 +283,58 @@ function CourseProgress() {
               ) : (
                 <p className="text-gray-400 mt-2">Vui lòng chọn video hoặc tài liệu để xem.</p>
               )}
+              <div className="mt-8">
+                <h3 className="text-xl font-bold mb-4">Đánh giá khóa học</h3>
+                {reviewError && <p className="text-red-500">{reviewError}</p>}
+                <div className="mb-4">
+                  <h4 className="text案件lg font-semibold">Gửi đánh giá của bạn</h4>
+                  <div className="flex items-center space-x-2">
+                    <Label>Điểm số:</Label>
+                    <div className="flex">
+                      {[...Array(5)].map((_, index) => (
+                        <Star
+                          key={index}
+                          className={`h-6 w-6 cursor-pointer ${
+                            index < rating ? "text-yellow-400" : "text-gray-400"
+                          }`}
+                          fill={index < rating ? "currentColor" : "none"}
+                          onClick={() => setRating(index + 1)}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                  <textarea
+                    className="w-full mt-2 p-2 bg-gray-800 text-white rounded"
+                    placeholder="Viết bình luận của bạn..."
+                    value={comment}
+                    onChange={(e) => setComment(e.target.value)}
+                  />
+                  <Button
+                    className="mt-2 bg-blue-600 hover:bg-blue-700"
+                    onClick={handleSubmitReview}
+                  >
+                    Gửi đánh giá
+                  </Button>
+                </div>
+                <div className="space-y-4">
+                  {reviews.length > 0 ? (
+                    reviews.map((review) => (
+                      <div key={review.id} className="border-t border-gray-700 pt-4">
+                        <div className="flex items-center space-x-2">
+                          <span className="font-semibold">{review.full_name || "Anonymous"}</span>
+                          {renderStars(review.rating)}
+                        </div>
+                        <p className="text-gray-400 mt-1">{review.comment || "Không có bình luận"}</p>
+                        <p className="text-gray-500 text-sm">
+                          {review.created_at ? new Date(review.created_at).toLocaleDateString() : "N/A"}
+                        </p>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-gray-400">Chưa có đánh giá nào cho khóa học này.</p>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         </div>

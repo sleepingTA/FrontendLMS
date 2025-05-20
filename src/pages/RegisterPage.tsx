@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { isAuthenticated, register } from '../services/AuthService'; // Loại bỏ googleLogin
-import { RegisterResponse } from '../types/types'; // Giả định type RegisterResponse
+import { isAuthenticated, register } from '../services/AuthService'; 
 
 const RegisterPage: React.FC = () => {
   const [fullName, setFullName] = useState<string>('');

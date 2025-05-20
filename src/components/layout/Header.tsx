@@ -17,16 +17,14 @@ const Header: React.FC = () => {
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    console.log('Header state:', { isAuthenticated, user });
+    console.log('Header state:', { isAuthenticated, user, avatar: user?.avatar });
     const handleClickOutside = (event: MouseEvent) => {
-      console.log('Clicked outside, checking dropdown');
       if (
         dropdownRef.current &&
         !dropdownRef.current.contains(event.target as Node) &&
         buttonRef.current &&
         !buttonRef.current.contains(event.target as Node)
       ) {
-        console.log('Closing dropdown');
         setIsOpen(false);
       }
     };
@@ -40,18 +38,15 @@ const Header: React.FC = () => {
   if (location.pathname.includes('/player')) return null;
 
   const handleToggleMenu = () => {
-    console.log('Toggling menu, isMenuOpen:', !isMenuOpen);
     setIsMenuOpen((prev) => !prev);
   };
 
   const toggleDropdown = () => {
-    console.log('Toggling dropdown, isOpen:', !isOpen);
     setIsOpen((prev) => !prev);
   };
 
   const handleLogout = async () => {
     try {
-      console.log('Attempting logout');
       await logout();
       setAuth(false, null);
       setIsOpen(false);
@@ -65,8 +60,7 @@ const Header: React.FC = () => {
   };
 
   const handleNavigate = (path: string, event?: React.MouseEvent) => {
-    console.log('Navigating to:', path);
-    event?.stopPropagation(); // Ngăn sự kiện lan tỏa để tránh xung đột với handleClickOutside
+    event?.stopPropagation();
     setIsOpen(false);
     navigate(path);
   };
@@ -78,7 +72,6 @@ const Header: React.FC = () => {
   const handleSearchSubmit = (e: React.KeyboardEvent<HTMLInputElement> | React.MouseEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      console.log('Submitting search:', searchQuery);
       navigate(`/search?query=${encodeURIComponent(searchQuery.trim())}`);
       setSearchQuery('');
       if (searchInputRef.current) {
@@ -162,9 +155,13 @@ const Header: React.FC = () => {
               >
                 {isAuthenticated && user?.avatar ? (
                   <img
-                    src={user.avatar}
+                    src={`http://localhost:3000/${user.avatar}`}
                     alt="User Avatar"
                     className="w-8 h-8 rounded-full object-cover"
+                    onError={(e) => {
+                      console.error('Avatar load failed:', user.avatar);
+                      e.currentTarget.src = '/default-avatar.png';
+                    }}
                   />
                 ) : (
                   <svg

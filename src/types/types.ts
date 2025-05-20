@@ -1,4 +1,4 @@
-// src/types/types.ts
+
 export interface ApiResponse<T> {
   success: boolean;
   data?: T;
@@ -7,7 +7,7 @@ export interface ApiResponse<T> {
 
 // User
 export interface User {
-  id: number;
+  id: string;
   email: string;
   full_name: string;
   role: 'User' | 'Admin';
@@ -48,6 +48,7 @@ export interface Course {
   created_at?: string;
   updated_at?: string;
   lessons?: Lesson[];
+  avg_rating?: number;
 }
 
 export interface LectureProgress {
@@ -124,6 +125,7 @@ export interface Review {
   comment?: string;
   is_approved: boolean;
   created_at?: string;
+  full_name?: string;
 }
 
 // Cart
@@ -160,5 +162,5 @@ export interface LoginResponse {
 export interface RegisterResponse {
   success: boolean;
   message: string;
-  userId?: number; // Tùy thuộc vào response từ backend
+  userId?: number; 
 }

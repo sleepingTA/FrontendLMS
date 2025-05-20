@@ -14,7 +14,7 @@ export default function Sidebar({ toggleState, setToggleState }: SidebarProps) {
         <div className='flex gap-8'>
             <div className='bg-white shadow-md border-r h-auto w-full max-w-[250px] min-w-[250px] py-6 px-4'>                
                 <div className='mt-4 text-center font-bold'>
-                    Hoàng Thái Anh
+                   
                 </div>
                 <div className="mt-6">
                     <ul className="space-y-1 mt-3">
@@ -40,14 +40,7 @@ export default function Sidebar({ toggleState, setToggleState }: SidebarProps) {
                                 <span>Security</span>
                             </button>
                         </li>
-                        <li className={`hover:bg-gray-100 ${toggleState === 3 ? 'bg-gray-200 rounded' : ''
-                            }`}>
-                            <button onClick={() => setToggleState(3)}
-                                className="text-slate-800 font-medium hover:text-slate-900 text-[15px] flex items-center rounded px-4 py-2 transition-all">
-                                <IoMdPhotos className='w-[18px] h-[18px] mr-3' />
-                                <span>Photo</span>
-                            </button>
-                        </li>
+                        
 
                         <li>
                             

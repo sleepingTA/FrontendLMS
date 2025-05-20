@@ -30,7 +30,7 @@ function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/search" element={<Search />} />
-        {/* Trang yêu cầu đăng nhập - Sử dụng ProtectedRoute */}
+        
         <Route
           path="/mycourses"
           element={
