@@ -5,31 +5,32 @@ export interface ApiResponse<T> {
   message?: string;
 }
 
-// User
 export interface User {
-  id: string;
+  id: number;
   email: string;
   full_name: string;
-  role: 'User' | 'Admin';
-  avatar?: string;
-  is_active?: boolean;
+  role: 'User' | 'Instructor' | 'Admin';
+  avatar: string | null;
+  is_active: number; 
+  email_verified?: number;
+  created_at: string;
+  updated_at: string;
 }
 
-// Auth
+
 export interface LoginResponse {
   accessToken: string;
   refreshToken: string;
   user: User;
 }
 
-// Category
 export interface Category {
   id: number;
   name: string;
   description?: string;
+  created_at?: string;
 }
 
-// Course
 export interface Course {
   id: number;
   title: string;
@@ -63,11 +64,11 @@ export interface Lesson {
   course_id: number;
   title: string;
   description?: string;
-  order_number: number;
-  created_at?: string;
-  updated_at?: string;
-  videos: Video[];
-  materials: Material[];
+  order_number?: number; 
+  videos?: Video[];
+  materials?: Material[];
+  created_at?: string; 
+  updated_at?: string; 
 }
 
 export interface Video {
@@ -76,12 +77,13 @@ export interface Video {
   title: string;
   description?: string;
   video_url: string;
-  order_number: number;
+  order_number?: number; 
   duration?: number;
   is_preview?: boolean;
   created_at?: string;
-  updated_at?: string;
+  updated_at?: string; 
 }
+
 
 export interface Material {
   id: number;
@@ -90,7 +92,7 @@ export interface Material {
   file_url: string;
   file_type: string;
   created_at?: string;
-  updated_at?: string;
+  updated_at?: string; 
 }
 
 export interface Enrollment {

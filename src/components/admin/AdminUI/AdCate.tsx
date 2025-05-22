@@ -1,137 +1,271 @@
-import React, { useState } from 'react'
-import CategoryModal from '../AdminModal/CategoryModal';
-import CategoryEditModal from '../AdminModal/CategoryEditModal';
+import React, { useState, useEffect } from "react";
+import { MdSearch, MdEdit, MdDelete } from "react-icons/md";
+import { Plus, X } from "lucide-react";
+import { getAllCategories, createCategory, updateCategory, deleteCategory } from "../../../services/CategoryService";
+import { Category } from "../../../types/types";
 
-const Categories = [
-    {
-        id: 1,
-        name: 'AI & Machine Learning',
-        description: 'Khóa học về AI, học máy, deep learning, NLP...',
-    },
-    {
-        id: 2,
-        name: 'Web Development',
-        description: 'HTML, CSS, JS, ReactJS, backend web,...',
-    },
-    {
-        id: 3,
-        name: 'Mobile Development',
-        description: 'Lập trình ứng dụng di động Android/iOS, React Native...',
-    },
-    {
-        id: 4,
-        name: 'Data Science',
-        description: 'Phân tích dữ liệu, trực quan hóa dữ liệu, Python, R,...',
-    },
-];
+const AdCate = () => {
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [filteredCategories, setFilteredCategories] = useState<Category[]>([]);
+  const [showAdd, setShowAdd] = useState(false);
+  const [editCate, setEditCate] = useState<Category | null>(null);
+  const [categoryName, setCategoryName] = useState("");
+  const [categoryDescription, setCategoryDescription] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-export default function AdCate() {
-    const [showAdd, setShowAdd] = useState(false);
-    const [categories, setCategories] = useState(Categories);
-    const [editCate, setEditCate] = useState<{ id: number, name: string, description: string } | null>(null);
+  useEffect(() => {
+    const fetchCategories = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const data = await getAllCategories();
+        setCategories(data);
+        setFilteredCategories(data);
+      } catch (error: any) {
+        setError(error.message || "Không thể tải danh sách danh mục");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchCategories();
+  }, []);
 
+  useEffect(() => {
+    const filtered = categories.filter(
+      (category) =>
+        category.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (category.description?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false)
+    );
+    setFilteredCategories(filtered);
+  }, [searchQuery, categories]);
 
-    return (
-        <div className='w-full h-screen overflow-x-hidden flex flex-col'>
-            <h2 className="text-2xl font-bold text-center my-6">Categories Management</h2>
-            <div className="flex justify-end mb-4 px-6">
-                <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition flex items-center gap-2 cursor-pointer"
-                    onClick={() => setShowAdd(true)}
-                >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-                    </svg>
-                    Add Category
-                </button>
-            </div>
+  const handleAddCategory = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+    try {
+      const categoryId = await createCategory(categoryName, categoryDescription);
+      const newCategory: Category = {
+        id: categoryId,
+        name: categoryName,
+        description: categoryDescription,
+        created_at: new Date().toISOString(),
+      };
+      setCategories((prev) => [...prev, newCategory]);
+      setShowAdd(false);
+      setCategoryName("");
+      setCategoryDescription("");
+    } catch (error: any) {
+      setError(error.message || "Không thể thêm danh mục");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-            {showAdd && (
-                <CategoryModal
-                    onAdd={(name, desc) => {
-                        setCategories([
-                            ...categories,
-                            { id: categories.length + 1, name, description: desc }
-                        ]);
-                        setShowAdd(false);
-                    }}
-                    onClose={() => setShowAdd(false)}
-                />
-            )}
+  const handleEditCategory = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editCate) return;
+    setLoading(true);
+    setError(null);
+    try {
+      await updateCategory(editCate.id, categoryName, categoryDescription);
+      setCategories((prev) =>
+        prev.map((cat) =>
+          cat.id === editCate.id ? { ...cat, name: categoryName, description: categoryDescription } : cat
+        )
+      );
+      setShowAdd(false);
+      setEditCate(null);
+      setCategoryName("");
+      setCategoryDescription("");
+    } catch (error: any) {
+      setError(error.message || "Không thể cập nhật danh mục");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-            <div className="w-full flex-grow p-6">
-                <table className="min-w-full bg-white">
-                    <thead className="bg-gray-800 whitespace-nowrap">
-                        <tr>
-                            <th className="p-4 text-left text-sm font-medium text-white">
-                                ID
-                            </th>
-                            <th className="p-4 text-left text-sm font-medium text-white">
-                                Name
-                            </th>
-                            <th className="p-4 text-left text-sm font-medium text-white">
-                                Description
-                            </th>
-                            <th className="p-4 text-left text-sm font-medium text-white">
-                                Actions
-                            </th>
-                        </tr>
-                    </thead>
+  const handleDeleteCategory = async (id: number) => {
+    if (!window.confirm("Bạn có chắc muốn xóa danh mục này?")) return;
+    setLoading(true);
+    setError(null);
+    try {
+      await deleteCategory(id);
+      setCategories((prev) => prev.filter((cat) => cat.id !== id));
+    } catch (error: any) {
+      setError(error.message || "Không thể xóa danh mục");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-                    <tbody className="whitespace-nowrap">
-                        {categories.map((cate, idx) => (
-                            <tr key={cate.id} className={idx % 2 !== 0 ? 'bg-blue-50' : ''}>
-                                <td className="p-4 text-[15px] text-slate-900 font-medium">
-                                    {cate.id}
-                                </td>
-                                <td className="p-4 text-[15px] text-slate-600 font-medium">
-                                    {cate.name}
-                                </td>
-                                <td className="p-4 text-[15px] text-slate-600 font-medium">
-                                    {cate.description}
-                                </td>
-                                <td className="p-4">
-                                    <div className="flex items-center">
-                                        <button className="mr-3 cursor-pointer" title="Edit" onClick={() => setEditCate({ ...cate })}>
-                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                                strokeWidth={1.5} stroke="currentColor" className="size-5 hover:bg-gray-200 text-cyan-500">
-                                                <path strokeLinecap="round" strokeLinejoin="round"
-                                                    d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
-                                            </svg>
-                                        </button>
-                                        <button title="Delette" className="cursor-pointer" onClick={() => {
-                                            if (window.confirm("Bạn có chắc muốn xóa danh mục này?")) {
-                                                setCategories(categories.filter(c => c.id !== cate.id));
-                                            }
-                                        }}>
-                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                                strokeWidth={1.5} stroke="currentColor" className="size-5 hover:bg-gray-200 text-red-700">
-                                                <path strokeLinecap="round" strokeLinejoin="round"
-                                                    d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
-                                            </svg>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-                {editCate && (
-                    <CategoryEditModal
-                        mode="edit"
-                        initName={editCate.name}
-                        initDesc={editCate.description}
-                        onSubmit={(name, desc) => {
-                            setCategories(categories =>
-                                categories.map(c =>
-                                    c.id === editCate.id ? { ...c, name, description: desc } : c
-                                )
-                            );
-                            setEditCate(null);
-                        }}
-                        onClose={() => setEditCate(null)}
-                    />
-                )}
-            </div>
+  const renderModal = () => (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/70 backdrop-blur-md p-4 transition-all duration-300"
+      onClick={(e) => e.target === e.currentTarget && setShowAdd(false)}
+    >
+      <form
+        className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 relative transform transition-all scale-100 hover:scale-[1.01]"
+        onClick={(e) => e.stopPropagation()}
+        onSubmit={editCate ? handleEditCategory : handleAddCategory}
+      >
+        <button
+          type="button"
+          className="absolute top-4 right-4 p-1.5 rounded-full text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-all duration-200 group"
+          onClick={() => setShowAdd(false)}
+        >
+          <X className="w-5 h-5 group-hover:scale-110 transition-transform duration-200" />
+        </button>
+        <h2 className="text-xl font-semibold mb-6 text-center text-gray-800">
+          {editCate ? "Cập nhật danh mục" : "Thêm danh mục"}
+        </h2>
+        {error && <p className="text-red-500 text-sm mb-4 text-center">{error}</p>}
+        <div className="space-y-6">
+          <div className="relative">
+            <label className="absolute -top-2 left-3 px-2 bg-white text-sm font-medium text-gray-600 transition-all duration-200">
+              Tên danh mục <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              className="w-full border border-gray-200 rounded-xl px-4 py-3.5 focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 outline-none transition-all duration-300 bg-white hover:bg-gray-50 text-gray-800"
+              value={categoryName}
+              onChange={(e) => setCategoryName(e.target.value)}
+              required
+            />
+          </div>
+          <div className="relative">
+            <label className="absolute -top-2 left-3 px-2 bg-white text-sm font-medium text-gray-600 transition-all duration-200">
+              Mô tả
+            </label>
+            <textarea
+              className="w-full border border-gray-200 rounded-xl px-4 py-3.5 focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 outline-none transition-all duration-300 bg-white hover:bg-gray-50 text-gray-800"
+              value={categoryDescription}
+              onChange={(e) => setCategoryDescription(e.target.value)}
+              rows={4}
+            />
+          </div>
+          <div className="flex gap-4 pt-2">
+            <button
+              type="button"
+              className="flex-1 px-4 py-3 text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl font-medium transition-all duration-300 hover:shadow-md"
+              onClick={() => setShowAdd(false)}
+            >
+              Hủy bỏ
+            </button>
+            <button
+              type="submit"
+              className="flex-1 px-4 py-3 bg-gradient-to-r from-indigo-500 to-blue-500 hover:from-indigo-600 hover:to-blue-600 text-white font-medium rounded-xl transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+              disabled={loading}
+            >
+              {loading ? "Đang lưu..." : editCate ? "Lưu danh mục" : "Thêm danh mục"}
+            </button>
+          </div>
         </div>
-    )
-}
+      </form>
+    </div>
+  );
+
+  return (
+    <div className="w-full min-h-screen overflow-x-hidden flex flex-col bg-gray-50">
+      <div className="flex flex-col sm:flex-row justify-between items-center p-6 gap-4">
+        <h2 className="text-2xl font-bold text-gray-800">Category Management</h2>
+        <div className="flex items-center gap-4">
+          <div className="relative w-full sm:w-64">
+            <input
+              type="text"
+              className="w-full border border-gray-200 rounded-xl pl-10 pr-4 py-2 focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 outline-none transition-all duration-300 bg-white hover:bg-gray-50 text-gray-800 placeholder-gray-400"
+              placeholder="Tìm kiếm theo tên hoặc mô tả..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              disabled={loading}
+            />
+            <MdSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+          </div>
+          <button
+            className="px-4 py-2 bg-gradient-to-r from-indigo-500 to-blue-500 hover:from-indigo-600 hover:to-blue-600 text-white font-medium rounded-xl transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
+            onClick={() => {
+              setEditCate(null);
+              setCategoryName("");
+              setCategoryDescription("");
+              setShowAdd(true);
+            }}
+            disabled={loading}
+          >
+            <Plus className="inline w-5 h-5 mr-2" /> Thêm danh mục
+          </button>
+        </div>
+      </div>
+      <div className="w-full flex-grow p-6">
+        {error && <p className="text-red-500 text-center mb-4">{error}</p>}
+        {loading ? (
+          <p className="text-center text-gray-600">Đang tải...</p>
+        ) : filteredCategories.length === 0 ? (
+          <p className="text-center text-gray-600">Không tìm thấy danh mục</p>
+        ) : (
+          <div className="overflow-x-auto rounded-xl shadow-md">
+            <table className="min-w-full bg-white">
+              <thead className="bg-gradient-to-r from-indigo-600 to-blue-500 text-white">
+                <tr>
+                  <th className="p-4 text-left text-sm font-semibold">ID</th>
+                  <th className="p-4 text-left text-sm font-semibold">Tên danh mục</th>
+                  <th className="p-4 text-left text-sm font-semibold">Mô tả</th>
+                  <th className="p-4 text-left text-sm font-semibold">Ngày tạo</th>
+                  <th className="p-4 text-left text-sm font-semibold">Hành động</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {filteredCategories.map((category, idx) => (
+                  <tr
+                    key={category.id}
+                    className={`${idx % 2 !== 0 ? "bg-gray-50" : "bg-white"} hover:bg-gray-100 transition-all duration-200`}
+                  >
+                    <td className="p-4 text-[15px] text-gray-900 font-medium">{category.id}</td>
+                    <td className="p-4 text-[15px] text-gray-900 font-medium">{category.name}</td>
+                    <td className="p-4 text-[15px] text-gray-600 font-medium">
+                      {category.description || "Không có mô tả"}
+                    </td>
+                    <td className="p-4 text-[15px] text-gray-600 font-medium">
+                      {category.created_at
+                        ? new Date(category.created_at).toLocaleDateString()
+                        : "N/A"}
+                    </td>
+                    <td className="p-4">
+                      <div className="flex items-center gap-3">
+                        <button
+                          className="p-1.5 rounded-full hover:bg-gray-200 transition-all duration-200"
+                          title="Chỉnh sửa"
+                          onClick={() => {
+                            setEditCate(category);
+                            setCategoryName(category.name);
+                            setCategoryDescription(category.description || "");
+                            setShowAdd(true);
+                          }}
+                          disabled={loading}
+                        >
+                          <MdEdit className="w-5 h-5 text-blue-500" />
+                        </button>
+                        <button
+                          className="p-1.5 rounded-full hover:bg-gray-200 transition-all duration-200"
+                          title="Xóa"
+                          onClick={() => handleDeleteCategory(category.id)}
+                          disabled={loading}
+                        >
+                          <MdDelete className="w-5 h-5 text-red-500" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+      {showAdd && renderModal()}
+    </div>
+  );
+};
+
+export default AdCate;

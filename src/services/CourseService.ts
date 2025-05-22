@@ -1,5 +1,6 @@
 import axiosInstance from '../config/axios';
-import { ApiResponse, Course, Lesson } from '../types/types';
+import { ApiResponse, Course, Lesson, User } from '../types/types';
+import { getUserEnrollments } from '../services/EnrollmentService';
 
 export const getAllCourses = async (): Promise<Course[]> => {
   try {
@@ -102,5 +103,26 @@ export const deleteCourse = async (id: number): Promise<void> => {
     await axiosInstance.delete(`/courses/${id}`);
   } catch (error) {
     throw new Error('Failed to delete course');
+  }
+};
+
+export const getUsersByCourse = async (courseId: number): Promise<User[]> => {
+  try {
+    const enrollments = await getUserEnrollments();
+    const courseEnrollments = enrollments.filter((enrollment) => enrollment.course_id === courseId);
+    const userPromises = courseEnrollments.map((enrollment) =>
+      axiosInstance.get<ApiResponse<User>>(`/users/${enrollment.user_id}`)
+    );
+    const userResponses = await Promise.all(userPromises);
+    return userResponses
+      .map((res) => res.data.data)
+      .filter((user): user is User => !!user);
+  } catch (error: any) {
+    console.error('Error fetching users for course:', {
+      message: error.message,
+      status: error.response?.status,
+      data: error.response?.data
+    });
+    throw new Error('Failed to fetch users: ' + (error.response?.data?.message || error.message));
   }
 };
