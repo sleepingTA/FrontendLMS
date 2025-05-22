@@ -1,30 +1,39 @@
-
 import React, { useEffect, useState } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-import { isAuthenticated } from '../../services/AuthService';
+import { useAuth } from '../../context/AuthContext';
+import { isAuthenticated as checkIsAuthenticated } from '../../services/AuthService'
 
-interface ProtectedRouteProps {
+interface AdminProtectedRouteProps {
   children: React.ReactNode;
 }
 
-const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
+const AdminProtectedRoute: React.FC<AdminProtectedRouteProps> = ({ children }) => {
+  const { isAuthenticated, user } = useAuth();
   const [isAuth, setIsAuth] = useState<boolean | null>(null);
+  const [isAdmin, setIsAdmin] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const location = useLocation();
 
   useEffect(() => {
-    const checkAuth = async () => {
+    const checkAuthAndRole = async () => {
       try {
-        const authenticated = await isAuthenticated();
+        const authenticated = await checkIsAuthenticated();
         setIsAuth(authenticated);
+
+        if (authenticated && user) {
+          setIsAdmin(user.role === 'Admin');
+        } else {
+          setIsAdmin(false);
+        }
       } catch (err) {
-        console.error('Authentication check failed:', err);
+        console.error('Kiểm tra xác thực thất bại:', err);
         setIsAuth(false);
+        setIsAdmin(false);
         setError('Không thể xác thực. Vui lòng thử lại.');
       }
     };
-    checkAuth();
-  }, []);
+    checkAuthAndRole();
+  }, [user]);
 
   if (isAuth === null) {
     return (
@@ -48,7 +57,11 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
+  if (!isAdmin) {
+    return <Navigate to="/" state={{ from: location }} replace />;
+  }
+
   return <>{children}</>;
 };
 
-export default ProtectedRoute;
+export default AdminProtectedRoute;

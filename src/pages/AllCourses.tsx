@@ -19,32 +19,31 @@ export default function AllCourses() {
     { id: string; label: string; min: number; max: number }[]
   >([]);
   const [selectedRatings, setSelectedRatings] = useState<number[]>([]);
-  const { isAuthenticated } = useAuth(); // Sử dụng AuthContext để kiểm tra trạng thái đăng nhập
+  const { isAuthenticated } = useAuth(); 
 
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       setError(null);
       try {
-        // Lấy danh sách tất cả khóa học
         const coursesData = await getAllCourses();
         console.log('Fetched Courses:', coursesData);
 
         let filteredCourses = coursesData;
 
-        // Nếu người dùng đã đăng nhập, lấy danh sách ghi danh và lọc khóa học
+        
         if (isAuthenticated) {
           try {
             const enrollmentsData = await getUserEnrollments();
             console.log('Fetched Enrollments:', enrollmentsData);
             setEnrollments(enrollmentsData);
-            // Lọc các khóa học chưa được ghi danh
+           
             filteredCourses = coursesData.filter(
               (course) => !enrollmentsData.some((enrollment) => enrollment.course_id === course.id)
             );
           } catch (err: any) {
             console.error('Failed to load enrollments:', err);
-            setEnrollments([]); // Đặt enrollments rỗng nếu lỗi
+            setEnrollments([]); 
           }
         }
 
@@ -58,11 +57,10 @@ export default function AllCourses() {
     };
 
     fetchData();
-  }, [isAuthenticated]); // Chạy lại effect khi trạng thái đăng nhập thay đổi
+  }, [isAuthenticated]); 
 
   const baseUrl = 'http://localhost:3000';
 
-  // Lọc khóa học dựa trên các bộ lọc danh mục, giá và đánh giá
   const filteredCourses = courses.filter((course) => {
     const matchesCategory =
       selectedCategories.length === 0 || selectedCategories.includes(course.category_id);
@@ -131,8 +129,8 @@ export default function AllCourses() {
                 to={`/courses/${course.id}`}
                 className="course-card"
               >
-                <div className="course-card-image w-[285px] h-[200px] bg-[#3DCBB1] rounded-[12px]">
-                  <img
+                <div className="course-card-image w-[285px] h-[200px] rounded-[12px]">
+                  <img 
                     src={course.thumbnail_url ? `${baseUrl}${course.thumbnail_url}` : DataScience}
                     alt={course.title || 'Hình ảnh khóa học'}
                     className="w-[285px] h-[135px] object-cover"

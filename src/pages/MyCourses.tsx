@@ -38,7 +38,7 @@ export default function MyCourses() {
 
   return (
     <div className="py-4 mx-auto lg:max-w-6xl md:max-w-4xl max-w-xl">
-      <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 text-center mb-10">Khóa học của tôi</h2>
+      <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 text-center mb-10">My Courses</h2>
       
       {courses.length === 0 ? (
         <p className="text-center text-gray-600">Bạn chưa đăng ký khóa học nào.</p>

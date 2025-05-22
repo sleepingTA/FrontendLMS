@@ -16,7 +16,10 @@ import RegisterPage from './pages/RegisterPage'
 import AllCourses from './pages/AllCourses'
 import ProtectedRoute from './components/common/ProtectedRoute';
 import Search from './pages/Search';
-
+import ForgotPasswordPage from './pages/ForgotPassword'
+import ResetPasswordPage from './pages/ResetPassword'
+import AdminDashboard from './pages/AdminDashboard'
+import AdminProtectedRoute from './components/common/AdminProtectedRoute'
 function App() {
 
 
@@ -29,8 +32,18 @@ function App() {
         <Route path="/courses/:id" element={<CourseDetail />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
         <Route path="/search" element={<Search />} />
-        
+        <Route
+          path="/admin/dashboard"
+          element={
+            <AdminProtectedRoute>
+              <AdminDashboard />
+            </AdminProtectedRoute>
+          }
+        />
+
         <Route
           path="/mycourses"
           element={
