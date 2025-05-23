@@ -106,7 +106,7 @@ export interface Enrollment {
   discounted_price?: number;
   description?: string;
 }
-// Payment
+
 export interface Payment {
   id: number;
   user_id: number;
@@ -117,8 +117,13 @@ export interface Payment {
   transaction_id?: string;
   payment_date?: string;
 }
+export interface PaymentStat {
+  month: string;
+  income: number;
+  transactions: number;
+}
 
-// Review
+
 export interface Review {
   id: number;
   user_id: number;

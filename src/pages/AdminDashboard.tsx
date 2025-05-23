@@ -1,10 +1,10 @@
 import React, { useState } from 'react'
-import AdminSidebar from '../components/admin/AdminUI/AdminSidebar';
-import AdUsers from '../components/admin/AdminUI/AdUsers';
-import AdCourses from '../components/admin/AdminUI/AdCourses';
-import AdCate from '../components/admin/AdminUI/AdCate';
-import AdPay from '../components/admin/AdminUI/AdPay';
-import AdStats from '../components/admin/AdminUI/AdStats';
+import AdminSidebar from '../components/admin/AdminSidebar';
+import AdUsers from '../components/admin/AdUsers';
+import AdCourses from '../components/admin/AdCourses';
+import AdCate from '../components/admin/AdCate';
+import AdPay from '../components/admin/AdPay';
+import AdStats from '../components/admin/AdStats';
 
 export default function AdminDashboard() {
   const [toggleState, setToggleState] = useState(1);

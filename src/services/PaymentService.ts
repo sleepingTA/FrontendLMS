@@ -1,6 +1,11 @@
 import axiosInstance from '../config/axios';
 import { ApiResponse, Payment } from '../types/types';
 
+export interface PaymentStat {
+  month: string;
+  income: number;
+  transactions: number;
+}
 export const getPayments = async (): Promise<Payment[]> => {
   try {
     const response = await axiosInstance.get<ApiResponse<Payment[]>>('/payments');
@@ -60,5 +65,15 @@ export const cancelPayment = async (paymentId: number): Promise<void> => {
     await axiosInstance.delete(`/payments/${paymentId}`);
   } catch (error) {
     throw new Error('Failed to cancel payment');
+  }
+};
+export const getPaymentStats = async (): Promise<PaymentStat[]> => {
+  try {
+    const response = await axiosInstance.get<ApiResponse<PaymentStat[]>>('/payments/stats'); 
+    console.log('API response for getPaymentStats:', response.data);
+    return response.data.data || [];
+  } catch (error: any) {
+    console.error('Error in getPaymentStats:', error.response?.data || error.message);
+    throw new Error(error.response?.data?.message || 'Không thể lấy thống kê thanh toán');
   }
 };

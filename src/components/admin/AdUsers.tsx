@@ -1,9 +1,8 @@
-// src/components/UserManagement.tsx
 import React, { useState, useEffect } from "react";
 import { MdBlock, MdEdit, MdSearch } from "react-icons/md";
 import { X } from "lucide-react";
-import { getAllUsers, updateUser } from "../../../services/UserService";
-import { User } from "../../../types/types";
+import { getAllUsers, updateUser } from "../../services/UserService";
+import { User } from "../../types/types";
 
 const UserManagement = () => {
   const [users, setUsers] = useState<User[]>([]);
@@ -21,7 +20,7 @@ const UserManagement = () => {
       setError(null);
       try {
         const data = await getAllUsers();
-        console.log('Users set to state:', data); // Log dữ liệu
+        console.log('Users set to state:', data);
         setUsers(data);
         setFilteredUsers(data);
       } catch (error: any) {
@@ -40,7 +39,7 @@ const UserManagement = () => {
         user.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         user.email.toLowerCase().includes(searchQuery.toLowerCase())
     );
-    console.log('Filtered users:', filtered); // Log dữ liệu sau lọc
+    console.log('Filtered users:', filtered); 
     setFilteredUsers(filtered);
   }, [searchQuery, users]);
 
@@ -48,8 +47,8 @@ const UserManagement = () => {
     setLoading(true);
     setError(null);
     try {
-      const newIsActive = user.is_active === 1 ? false : true; // Gửi boolean
-      console.log('Toggling block for user:', { id: user.id, is_active: newIsActive }); // Log
+      const newIsActive = user.is_active === 1 ? false : true; 
+      console.log('Toggling block for user:', { id: user.id, is_active: newIsActive });
       await updateUser(Number(user.id), { is_active: newIsActive });
       setUsers((prevUsers) =>
         prevUsers.map((u) =>

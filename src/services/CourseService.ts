@@ -58,46 +58,32 @@ export const getLessonsByCourse = async (courseId: number): Promise<Lesson[]> =>
   }
 };
 
-export const createCourse = async (course: {
-  title: string;
-  description?: string;
-  category_id: number;
-  price: number;
-  discount_percentage?: number;
-  thumbnail_url?: string;
-  is_active?: boolean;
-}): Promise<number> => {
+export const createCourse = async (course: FormData): Promise<number> => {
   try {
     const response = await axiosInstance.post<ApiResponse<{ courseId: number }>>('/courses', course, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
     return response.data.data?.courseId || 0;
-  } catch (error) {
-    throw new Error('Failed to create course');
+  } catch (error: any) {
+    console.error('Lỗi khi tạo khóa học:', error.message, error.response?.data);
+    throw new Error(error.response?.data?.message || 'Không thể tạo khóa học');
   }
 };
 
-export const updateCourse = async (
-  id: number,
-  course: {
-    title?: string;
-    description?: string;
-    category_id?: number;
-    price?: number;
-    discount_percentage?: number;
-    thumbnail_url?: string;
-    is_active?: boolean;
-  }
-): Promise<void> => {
+export const updateCourse = async (id: number, course: FormData): Promise<void> => {
   try {
+    if (isNaN(id)) {
+      throw new Error('ID khóa học không hợp lệ');
+    }
+    console.log(`Cập nhật khóa học với ID: ${id}, Dữ liệu:`, Object.fromEntries(course));
     await axiosInstance.put(`/courses/${id}`, course, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
-  } catch (error) {
-    throw new Error('Failed to update course');
+  } catch (error: any) {
+    console.error(`Lỗi khi cập nhật khóa học ID ${id}:`, error.message, error.response?.data);
+    throw new Error(error.response?.data?.message || 'Không thể cập nhật khóa học');
   }
 };
-
 export const deleteCourse = async (id: number): Promise<void> => {
   try {
     await axiosInstance.delete(`/courses/${id}`);

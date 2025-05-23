@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { MdSearch, MdEdit, MdDelete } from "react-icons/md";
 import { Plus, X } from "lucide-react";
-import { getAllCategories, createCategory, updateCategory, deleteCategory } from "../../../services/CategoryService";
-import { Category } from "../../../types/types";
+import { getAllCategories, createCategory, updateCategory, deleteCategory } from "../../services/CategoryService";
+import { Category } from "../../types/types";
 
 const AdCate = () => {
   const [categories, setCategories] = useState<Category[]>([]);
